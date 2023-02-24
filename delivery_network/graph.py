@@ -56,11 +56,15 @@ class Graph:
             Distance between node1 and node2 on the edge. Default is 1.
         """
 
+        if node1 not in self.graph:
+            self.graph[node1] = []
+            self.nb_nodes += 1
+            self.nodes.append(node1)
+        if node2 not in self.graph:
+            self.graph[node2] = []
+            self.nb_nodes += 1
+            self.nodes.append(node2)
 
-        #self.graph.setdefault(node1, [node2, power_min, dist])
-        #self.graph[node1]=(node2, power_min, dist)
-        #self.graph[node1].append((node2, power_min, dist))
-        #self.graph.update({node1:(node2, power_min, dist)})
 
         self.nb_edges+=1
         self.graph[node1].append((node2, power_min, dist))
@@ -72,7 +76,7 @@ class Graph:
     
 
     def connected_components(self):
-        components_list = []
+        list_components = []
         marked_sommet = {sommet:False for sommet in self.nodes}
         def dfs(sommet):
             component = [sommet]
@@ -85,9 +89,9 @@ class Graph:
 
         for sommet in self.nodes:
             if not marked_sommet[sommet]:
-                components_list.append(dfs(sommet))
+                list_components.append(dfs(sommet))
                 
-        return components_list
+        return list_components
 
 
 
