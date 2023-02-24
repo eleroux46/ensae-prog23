@@ -70,19 +70,56 @@ class Graph:
         self.graph[node1].append((node2, power_min, dist))
         self.graph[node2].append((node1, power_min, dist))
 
+    def dfs(self, sommet):
+        component = [sommet]
+        for neighbour in self.graph[sommet]:
+            neighbour = neighbour[0]
+            if not marked_sommet[neighbour]: #O(n+m): visite chq arrete et chq sommet une fois 
+                marked_sommet[neighbour] = True
+                component += dfs(neighbour)
+        return component
+    
+
+    def dfs2(self, sommet, sommet2, power, visites):
+        component = [sommet]
+        for neighbour in self.graph[sommet]:
+            neighbour1 = neighbour[0]
+            power_neighbour= neighbour[1]
+            visites[sommet]=True
+            if not visites[neighbour1] and power_neighbour <= power and component[-1]!=sommet2 : #O(n+m): visite chq arrete et chq sommet une fois 
+                visites[neighbour1] = True
+                component += self.dfs2(neighbour1, sommet2, power, visites)
+        return component
+#bfs : parcours en largeur 
+#garder le parent de chacun des noeuds 
 
     def get_path_with_power(self, src, dest, power):
-        raise NotImplementedError
+        #src= source= noeud de depart 
+        #dest= destination
+
+        #on cherche a savoir si le chemin est possible
+        connected=self.connected_components()
+        for i in range(0, len(connected)):
+            if src and dest in connected[i]:
+                list_components = []
+                marked_sommet = {sommet:False for sommet in connected[i]} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
+                list_components= self.dfs2(src, dest, power, marked_sommet)                
+            else:
+                None      
+        if dest not in list_components:
+            list_components = None           
+        return list_components
+
     
 
     def connected_components(self):
         list_components = []
-        marked_sommet = {sommet:False for sommet in self.nodes}
+        marked_sommet = {sommet:False for sommet in self.nodes} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
         def dfs(sommet):
             component = [sommet]
             for neighbour in self.graph[sommet]:
                 neighbour = neighbour[0]
-                if not marked_sommet[neighbour]:
+                if not marked_sommet[neighbour]: #O(n+m): visite chq arrete et chq sommet une fois 
                     marked_sommet[neighbour] = True
                     component += dfs(neighbour)
             return component
@@ -92,6 +129,8 @@ class Graph:
                 list_components.append(dfs(sommet))
                 
         return list_components
+    
+    
 
 
 

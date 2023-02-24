@@ -14,3 +14,4 @@ from graph import Graph # on importe la classe graphe du fichier graph.py
 #g.add_edge(1, 2, 4, 21)
 g = graph_from_file("input/network.04.in")
 print(g) # affichage du graphe
+print(g.get_path_with_power(1,4,10))
