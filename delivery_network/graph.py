@@ -55,15 +55,40 @@ class Graph:
         dist: numeric (int or float), optional
             Distance between node1 and node2 on the edge. Default is 1.
         """
-        raise NotImplementedError
-    
+
+
+        #self.graph.setdefault(node1, [node2, power_min, dist])
+        #self.graph[node1]=(node2, power_min, dist)
+        #self.graph[node1].append((node2, power_min, dist))
+        #self.graph.update({node1:(node2, power_min, dist)})
+
+        self.nb_edges+=1
+        self.graph[node1].append((node2, power_min, dist))
+        self.graph[node2].append((node1, power_min, dist))
+
 
     def get_path_with_power(self, src, dest, power):
         raise NotImplementedError
     
 
     def connected_components(self):
-        raise NotImplementedError
+        components_list = []
+        marked_sommet = {sommet:False for sommet in self.nodes}
+        def dfs(sommet):
+            component = [sommet]
+            for neighbour in self.graph[sommet]:
+                neighbour = neighbour[0]
+                if not marked_sommet[neighbour]:
+                    marked_sommet[neighbour] = True
+                    component += dfs(neighbour)
+            return component
+
+        for sommet in self.nodes:
+            if not marked_sommet[sommet]:
+                components_list.append(dfs(sommet))
+                
+        return components_list
+
 
 
     def connected_components_set(self):
@@ -100,4 +125,49 @@ def graph_from_file(filename):
     G: Graph
         An object of the class Graph with the graph from file_name.
     """
-    raise NotImplementedError
+
+    f=open(filename, "r")
+    g=Graph()
+    line1= f.readline()
+    list_line1=line1.split()
+    g=Graph([node for node in range(1, int(list_line1[0])+1)]) #on crée le graphe avec le bon nb de noeuds
+    for i in range(1, int(list_line1[1])+1):
+        linei=f.readline()
+        list_linei=linei.split()
+        if len(list_linei)!=4:
+            g.add_edge(int(list_linei[0]), int(list_linei[1]), int(list_linei[2]))
+        else:
+            g.add_edge(int(list_linei[0]), int(list_linei[1]), int(list_linei[2]), int(list_linei[3]))
+    return g
+
+"""
+def connected_components(filename):
+    g=graph_from_file(filename)
+    s=sommet_depart=#a completer i guess
+    list_components=[]
+    list_pile=[]
+    list_pile.append() #rajouter un element a la fin
+    list_pile.pop() #recuperer le dernier element 
+    list_pile=[#recuperer le 1er node]
+    if list_pile!=[]:
+        node=list_pile.pop()
+        list_components.append(node)
+        list_arretes=g[node]
+        for i in range(1,len(list_arretes)+1):
+            list_pile.append(list_arretes[i][0])"""
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
