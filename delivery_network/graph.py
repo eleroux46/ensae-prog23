@@ -1,3 +1,4 @@
+from collections import deque
 class Graph:
     """
     A class representing graphs as adjacency lists and implementing various algorithms on the graphs. Graphs in the class are not oriented. 
@@ -13,8 +14,9 @@ class Graph:
     nb_nodes: int
         The number of nodes.
     nb_edges: int
-        The number of edges. 
+        The number of edges.
     """
+
 
     def __init__(self, nodes=[]):
         """
@@ -92,6 +94,58 @@ class Graph:
         return component
 #bfs : parcours en largeur 
 #garder le parent de chacun des noeuds 
+"""    
+#jai essaye de rajouter la condition de power mais trop de modif 
+#donc marche plus lol
+
+def bfs(self, depart, fin, power):
+        path=[]
+        queue=deque()
+        queue.append((depart, [depart]))
+        while queue:
+            node, path=queue.popleft()
+            if len(self.graph[node])>1:
+                adjacent_nodes = []
+                power_min= []
+                for j in range(len([self.graph[node]])):
+                    adjacent_nodes.append(self.graph[1][j][0])
+                    power_min.append(self.graph[node][j][1])
+                    for i in range(len(adjacent_nodes)):
+                        if adjacent_nodes[i]==fin and power_min[i]<=power:
+                            return path+[adjacent_nodes[i]]
+                        elif power_min[i]<=power:
+                            queue.append((adjacent_nodes[i], path+[adjacent_nodes[i]]))
+            else:
+                adjacent_nodes = [n for n in self.graph[node][0] if n not in path]
+                power_min= [p for p in self.graph[node][1] if self.graph[node][0] not in path]
+                for i in range(len(adjacent_nodes)):
+                    if adjacent_nodes[i]==fin and power_min[i]<=power:
+                        return path+[adjacent_nodes[i]]
+                    elif power_min[i]<=power:
+                        queue.append((adjacent_nodes[i], path+[adjacent_nodes[i]]))
+
+#version bfs de base sur laquelle on peut travailler
+    def bfs(self, depart, fin, power):
+        path=[]
+        queue=deque()
+        queue.append((depart, [depart]))
+        while queue:
+            node, path=queue.popleft()
+            adjacent_nodes = [n for n in self.graph[node][0] if n not in path]
+        for adjacent_node in adjacent_nodes:
+            if adjacent_node == fin:
+                return path + [adjacent_node]
+            else:
+                queue.append((adjacent_node, path + [adjacent_node]))
+
+                        
+                        
+"""
+
+
+
+
+
 
     def get_path_with_power(self, src, dest, power):
         #src= source= noeud de depart 
@@ -101,14 +155,14 @@ class Graph:
         connected=self.connected_components()
         for i in range(0, len(connected)):
             if src and dest in connected[i]:
-                list_components = []
-                marked_sommet = {sommet:False for sommet in connected[i]} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
-                list_components= self.dfs2(src, dest, power, marked_sommet)                
+                chemin = []
+                #marked_sommet = {sommet:False for sommet in connected[i]} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
+                chemin= self.bfs(src, dest, power)                
             else:
                 None      
-        if dest not in list_components:
-            list_components = None           
-        return list_components
+        #if dest not in chemin:
+           # chemin = None           
+        return chemin
 
     
 
