@@ -94,56 +94,33 @@ class Graph:
         return component
 #bfs : parcours en largeur 
 #garder le parent de chacun des noeuds 
-"""    
-#jai essaye de rajouter la condition de power mais trop de modif 
-#donc marche plus lol
 
-def bfs(self, depart, fin, power):
-        path=[]
-        queue=deque()
-        queue.append((depart, [depart]))
-        while queue:
-            node, path=queue.popleft()
-            if len(self.graph[node])>1:
-                adjacent_nodes = []
-                power_min= []
-                for j in range(len([self.graph[node]])):
-                    adjacent_nodes.append(self.graph[1][j][0])
-                    power_min.append(self.graph[node][j][1])
-                    for i in range(len(adjacent_nodes)):
-                        if adjacent_nodes[i]==fin and power_min[i]<=power:
-                            return path+[adjacent_nodes[i]]
-                        elif power_min[i]<=power:
-                            queue.append((adjacent_nodes[i], path+[adjacent_nodes[i]]))
-            else:
-                adjacent_nodes = [n for n in self.graph[node][0] if n not in path]
-                power_min= [p for p in self.graph[node][1] if self.graph[node][0] not in path]
-                for i in range(len(adjacent_nodes)):
-                    if adjacent_nodes[i]==fin and power_min[i]<=power:
-                        return path+[adjacent_nodes[i]]
-                    elif power_min[i]<=power:
-                        queue.append((adjacent_nodes[i], path+[adjacent_nodes[i]]))
-
-#version bfs de base sur laquelle on peut travailler
     def bfs(self, depart, fin, power):
         path=[]
+        erreur=0
         queue=deque()
         queue.append((depart, [depart]))
-        while queue:
+        while queue and erreur <= self.nb_edges + self.nb_nodes: #bfs de complexite O(n+m) 
             node, path=queue.popleft()
-            adjacent_nodes = [n for n in self.graph[node][0] if n not in path]
-        for adjacent_node in adjacent_nodes:
-            if adjacent_node == fin:
-                return path + [adjacent_node]
-            else:
-                queue.append((adjacent_node, path + [adjacent_node]))
+            adjacent_nodes = []
+            path_pwr = []
+            for neighbour in self.graph[node]:
+                adjacent_nodes.append(neighbour[0])
+                path_pwr.append(neighbour[1])
+            for element in path_pwr: 
+                if power < int(element): 
+                    del adjacent_nodes[path_pwr.index(element)], path_pwr[path_pwr.index(element)]
+            for adjacent_node in adjacent_nodes:
+                erreur+=1
+                if adjacent_node == fin:
+                    return path + [adjacent_node]
+                else:
+                    queue.append((adjacent_node, path + [adjacent_node]))
+        if erreur> self.nb_edges+self.nb_nodes:
+            path = None 
+                    
 
-                        
-                        
-"""
-
-
-
+        return path
 
 
 
@@ -152,16 +129,16 @@ def bfs(self, depart, fin, power):
         #dest= destination
 
         #on cherche a savoir si le chemin est possible
-        connected=self.connected_components()
+        connected=self.connected_components()                
+        chemin = []
         for i in range(0, len(connected)):
             if src and dest in connected[i]:
-                chemin = []
                 #marked_sommet = {sommet:False for sommet in connected[i]} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
                 chemin= self.bfs(src, dest, power)                
             else:
                 None      
         #if dest not in chemin:
-           # chemin = None           
+            #chemin = None           
         return chemin
 
     
