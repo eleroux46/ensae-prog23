@@ -16,5 +16,5 @@ from graph import Graph # on importe la classe graphe du fichier graph.py
 g = graph_from_file("input/network.00.in")
 print(g) # affichage du graphe
 #print(g.get_path_with_power(1,2,5))
-print(g.bfs(1,2,5))
+print(g.bfs(1,10,15))
 

@@ -100,25 +100,22 @@ class Graph:
         erreur=0
         queue=deque()
         queue.append((depart, [depart]))
-        while queue and erreur <= self.nb_edges + self.nb_nodes: #bfs de complexite O(n+m) 
+        while queue: #bfs de complexite O(n+m) 
             node, path=queue.popleft()
             adjacent_nodes = []
             path_pwr = []
-            for neighbour in self.graph[node]:
-                adjacent_nodes.append(neighbour[0])
-                path_pwr.append(neighbour[1])
+            for neighbour in self.graph[node] :
+                if neighbour[0] not in path:
+                    adjacent_nodes.append(neighbour[0])
+                    path_pwr.append(neighbour[1])
             for element in path_pwr: 
                 if power < int(element): 
                     del adjacent_nodes[path_pwr.index(element)], path_pwr[path_pwr.index(element)]
             for adjacent_node in adjacent_nodes:
-                erreur+=1
                 if adjacent_node == fin:
                     return path + [adjacent_node]
                 else:
                     queue.append((adjacent_node, path + [adjacent_node]))
-        if erreur> self.nb_edges+self.nb_nodes:
-            path = None 
-                    
 
         return path
 
@@ -137,8 +134,8 @@ class Graph:
                 chemin= self.bfs(src, dest, power)                
             else:
                 None      
-        #if dest not in chemin:
-            #chemin = None           
+        if dest not in chemin:
+            chemin = None           
         return chemin
 
     
