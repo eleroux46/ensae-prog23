@@ -95,6 +95,7 @@ class Graph:
 #bfs : parcours en largeur 
 #garder le parent de chacun des noeuds 
 
+#définition d'un parcours en largeur (bfs) :
     def bfs(self, depart, fin, power):
         path=[]
         erreur=0
