@@ -95,29 +95,44 @@ class Graph:
 #bfs : parcours en largeur 
 #garder le parent de chacun des noeuds 
 
+    def test(self, node, power):
+        adjacent_nodes = []
+        path_pwr = []
+        for neighbour in self.graph[node]: 
+            adjacent_nodes.append(neighbour[0]) 
+            path_pwr.append(neighbour[1])
+        for element in path_pwr: 
+            if power < int(element): 
+                del adjacent_nodes[path_pwr.index(element)], path_pwr[path_pwr.index(element)]
+        return adjacent_nodes, path_pwr
+        
     def bfs(self, depart, fin, power):
+        #erreur = 0 
         path=[]
-        erreur=0
+        i = 0 
         queue=deque()
         queue.append((depart, [depart]))
-        while queue: #bfs de complexite O(n+m) 
+        while queue: 
+            i+=1
             node, path=queue.popleft()
-            adjacent_nodes = []
-            path_pwr = []
-            for neighbour in self.graph[node] :
+            neighbour_and_pwr = dict()
+            for neighbour in self.graph[node]: 
                 if neighbour[0] not in path:
-                    adjacent_nodes.append(neighbour[0])
-                    path_pwr.append(neighbour[1])
-            for element in path_pwr: 
-                if power < int(element): 
-                    del adjacent_nodes[path_pwr.index(element)], path_pwr[path_pwr.index(element)]
-            for adjacent_node in adjacent_nodes:
+                    neighbour_and_pwr[neighbour[0]] = neighbour[1]
+            to_remove = []  # initialisation de la liste des noeuds à supprimer
+            for element, values in neighbour_and_pwr.items():
+                if values > power:  # si la puissance du lien est supérieure à power
+                    to_remove.append(element)  # on stocke l'élément dans la liste à supprimer
+            for element in to_remove:
+                del neighbour_and_pwr[element]  # on supprime les éléments stockés dans la liste à supprimer
+            for adjacent_node in neighbour_and_pwr.keys():
+                #erreur += 1
                 if adjacent_node == fin:
                     return path + [adjacent_node]
                 else:
                     queue.append((adjacent_node, path + [adjacent_node]))
+       
 
-        return path
 
 
 
@@ -134,8 +149,8 @@ class Graph:
                 chemin= self.bfs(src, dest, power)                
             else:
                 None      
-        if dest not in chemin:
-            chemin = None           
+        #if dest not in chemin:
+            #chemin = None           
         return chemin
 
     
@@ -172,8 +187,34 @@ class Graph:
     def min_power(self, src, dest):
         """
         Should return path, min_power. 
+        path is a list of nodes representing the path from src to dest.
+        min_power is the minimum power on the path from src to dest.
+        The result should be the path and the minimum power on the path from src to dest.
+        If there is no path from src to dest, the function should return None, None.
         """
-        raise NotImplementedError
+        #Should return path and min_power if there is a path from src to dest
+        #Uses the function get_path_with_power but instead of taking the minimum power as a parameter and returning the path if a path is possible, it takes only the src and dest as parameters and returns, if possible, the path as well as the min_power needed. 
+
+        path = self.get_path_with_power(src, dest, 0) # Chemin avec puissance minimale
+    
+        # Si on peut atteindre la destination avec une puissance nulle, la réponse est 0
+        if path is not None:
+            return path, 0
+    
+        # Sinon, on fait une recherche binaire sur l'intervalle [0, max_power]
+        low = 1
+        high = max(edge[1] for node_edges in self.graph.values() for edge in node_edges)
+        high = int(high)
+        while low < high:
+            mid = (low + high) // 2
+            path = self.get_path_with_power(src, dest, mid)
+            if path is not None:
+                high = mid
+            else:
+                low = mid + 1
+            
+        # La puissance minimale est high
+        return self.get_path_with_power(src, dest, high), high
 
 
 def graph_from_file(filename):
