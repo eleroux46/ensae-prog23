@@ -97,46 +97,47 @@ class Graph:
 
 #définition d'un parcours en largeur (bfs) :
     def bfs(self, depart, fin, power):
+        #erreur = 0 
         path=[]
-        erreur=0
+        i = 0 
         queue=deque()
         queue.append((depart, [depart]))
-        while queue: #bfs de complexite O(n+m) 
+        while queue: 
+            i+=1
             node, path=queue.popleft()
-            adjacent_nodes = []
-            path_pwr = []
-            for neighbour in self.graph[node] :
+            neighbour_and_pwr = dict()
+            for neighbour in self.graph[node]: 
                 if neighbour[0] not in path:
-                    adjacent_nodes.append(neighbour[0])
-                    path_pwr.append(neighbour[1])
-            for element in path_pwr: 
-                if power < int(element): 
-                    del adjacent_nodes[path_pwr.index(element)], path_pwr[path_pwr.index(element)]
-            for adjacent_node in adjacent_nodes:
+                    neighbour_and_pwr[neighbour[0]] = neighbour[1]
+            to_remove = []  # initialisation de la liste des noeuds à supprimer
+            for element, values in neighbour_and_pwr.items():
+                if values > power:  # si la puissance du lien est supérieure à power
+                    to_remove.append(element)  # on stocke l'élément dans la liste à supprimer
+            for element in to_remove:
+                del neighbour_and_pwr[element]  # on supprime les éléments stockés dans la liste à supprimer
+            for adjacent_node in neighbour_and_pwr.keys():
+                #erreur += 1
                 if adjacent_node == fin:
                     return path + [adjacent_node]
                 else:
                     queue.append((adjacent_node, path + [adjacent_node]))
-
-        return path
-
-
+       
 
     def get_path_with_power(self, src, dest, power):
         #src= source= noeud de depart 
         #dest= destination
 
         #on cherche a savoir si le chemin est possible
-        connected=self.connected_components()                
-        chemin = []
+        connected=self.connected_components()
         for i in range(0, len(connected)):
             if src and dest in connected[i]:
-                #marked_sommet = {sommet:False for sommet in connected[i]} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
+                chemin = []
+            #marked_sommet = {sommet:False for sommet in connected[i]} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
                 chemin= self.bfs(src, dest, power)                
-            else:
+            else : 
                 None      
-        if dest not in chemin:
-            chemin = None           
+            #if dest not in chemin:
+               # chemin = None           
         return chemin
 
         
