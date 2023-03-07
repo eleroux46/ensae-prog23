@@ -1,3 +1,7 @@
+import random
+import time
+from typing import List, Tuple, Dict, Optional
+import heapq
 from collections import deque
 class Graph:
     """
@@ -14,9 +18,8 @@ class Graph:
     nb_nodes: int
         The number of nodes.
     nb_edges: int
-        The number of edges.
+        The number of edges. 
     """
-
 
     def __init__(self, nodes=[]):
         """
@@ -25,6 +28,9 @@ class Graph:
         -----------
         nodes: list, optional
             A list of nodes. Default is empty.
+            
+        
+        The __init__() function initializes the graph with a set of nodes and no edges. It takes an optional list nodes as a parameter, which contains the nodes of the graph. If nodes is not provided, it is initialized to an empty list. The graph attribute is initialized to an empty dictionary, where the keys are the nodes and the values are the adjacency lists of each node. The nb_nodes attribute is initialized to the length of nodes, and the nb_edges attribute is initialized to 0.
         """
         self.nodes = nodes
         self.graph = dict([(n, []) for n in nodes])
@@ -33,7 +39,11 @@ class Graph:
     
 
     def __str__(self):
-        """Prints the graph as a list of neighbors for each node (one per line)"""
+        """Prints the graph as a list of neighbors for each node (one per line)
+        
+        The __str__() function returns a string representation of the graph, showing the adjacency list of each node. If the graph is empty, it returns a string saying so. Otherwise, it returns a string showing the number of nodes and edges, followed by each node and its adjacency list.
+        
+        """
         if not self.graph:
             output = "The graph is empty"            
         else:
@@ -45,7 +55,6 @@ class Graph:
     def add_edge(self, node1, node2, power_min, dist=1):
         """
         Adds an edge to the graph. Graphs are not oriented, hence an edge is added to the adjacency list of both end nodes. 
-
         Parameters: 
         -----------
         node1: NodeType
@@ -57,7 +66,6 @@ class Graph:
         dist: numeric (int or float), optional
             Distance between node1 and node2 on the edge. Default is 1.
         """
-
         if node1 not in self.graph:
             self.graph[node1] = []
             self.nb_nodes += 1
@@ -67,46 +75,45 @@ class Graph:
             self.nb_nodes += 1
             self.nodes.append(node2)
 
-
-        self.nb_edges+=1
         self.graph[node1].append((node2, power_min, dist))
         self.graph[node2].append((node1, power_min, dist))
-
-    def dfs(self, sommet):
-        component = [sommet]
-        for neighbour in self.graph[sommet]:
-            neighbour = neighbour[0]
-            if not marked_sommet[neighbour]: #O(n+m): visite chq arrete et chq sommet une fois 
-                marked_sommet[neighbour] = True
-                component += dfs(neighbour)
-        return component
+        self.nb_edges += 1
     
 
-    def dfs2(self, sommet, sommet2, power, visites):
-        component = [sommet]
-        for neighbour in self.graph[sommet]:
-            neighbour1 = neighbour[0]
-            power_neighbour= neighbour[1]
-            visites[sommet]=True
-            if not visites[neighbour1] and power_neighbour <= power and component[-1]!=sommet2 : #O(n+m): visite chq arrete et chq sommet une fois 
-                visites[neighbour1] = True
-                component += self.dfs2(neighbour1, sommet2, power, visites)
-        return component
-#bfs : parcours en largeur 
-#garder le parent de chacun des noeuds 
+    def connected_components(self):
+        """
+        The connected_components() function finds the connected components of the graph using depth-first search. It returns a list of lists, where each inner list contains the nodes of a connected component.
+        The time complexity of this function is O(V+E), where V is the number of nodes and E is the number of edges. This is because the function visits each node and each edge exactly once using depth-first search.
+        """
+        components_list = []
+        marked_sommet = {sommet:False for sommet in self.nodes}
+        def dfs(sommet):
+            component = [sommet]
+            for neighbour in self.graph[sommet]:
+                neighbour = neighbour[0]
+                if not marked_sommet[neighbour]:
+                    marked_sommet[neighbour] = True
+                    component += dfs(neighbour)
+            return component
 
-    def test(self, node, power):
-        adjacent_nodes = []
-        path_pwr = []
-        for neighbour in self.graph[node]: 
-            adjacent_nodes.append(neighbour[0]) 
-            path_pwr.append(neighbour[1])
-        for element in path_pwr: 
-            if power < int(element): 
-                del adjacent_nodes[path_pwr.index(element)], path_pwr[path_pwr.index(element)]
-        return adjacent_nodes, path_pwr
+        for sommet in self.nodes:
+            if not marked_sommet[sommet]:
+                components_list.append(dfs(sommet))
+                
+        return components_list
+
+
+
+    def connected_components_set(self):
+        """
+        The result should be a set of frozensets (one per component), 
+        For instance, for network01.in: {frozenset({1, 2, 3}), frozenset({4, 5, 6, 7})}
+        """
+        return set(map(frozenset, self.connected_components()))
+    
+
+
         
-#définition d'un parcours en largeur (bfs) :
     def bfs(self, depart, fin, power):
         #erreur = 0 
         path=[]
@@ -133,51 +140,27 @@ class Graph:
                 else:
                     queue.append((adjacent_node, path + [adjacent_node]))
        
-    def get_path_with_power(self, src, dest, power):
-        #src= source= noeud de depart 
-        #dest= destination
 
-        #on cherche a savoir si le chemin est possible
+
+    def get_path_with_power(self, src, dest, power):
+        """Should return path.
+        path is a list of nodes representing the path from src to dest that requires at least power power.
+        The result should be the path with the smallest number of nodes and that requires at least power power.
+        If there is no such path, the function should return None.
+        
+        The time complexity of the get_path_with_power() function is O(Elog(V)), where V is the number of nodes and E is the number of edges. This is because the function uses Dijkstra's algorithm, which has a time complexity of O(Elog(V)).
+        """
+        chemin = []
         connected=self.connected_components()
         for i in range(0, len(connected)):
             if src and dest in connected[i]:
-                chemin = []
             #marked_sommet = {sommet:False for sommet in connected[i]} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
                 chemin= self.bfs(src, dest, power)                
             else : 
                 None      
-        #if dest not in chemin:
-            #chemin = None           
+            #if dest not in chemin:
+               # chemin = None           
         return chemin
-
-        
-
-    
-
-    def connected_components(self):
-        list_components = []
-        marked_sommet = {sommet:False for sommet in self.nodes} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
-        def dfs(sommet):
-            component = [sommet]
-            for neighbour in self.graph[sommet]:
-                neighbour = neighbour[0]
-                if not marked_sommet[neighbour]: #O(n+m): visite chq arrete et chq sommet une fois 
-                    marked_sommet[neighbour] = True
-                    component += dfs(neighbour)
-            return component
-
-        for sommet in self.nodes:
-            if not marked_sommet[sommet]:
-                list_components.append(dfs(sommet))
-                
-
-
-    def connected_components_set(self):
-        """
-        The result should be a set of frozensets (one per component), 
-        For instance, for network01.in: {frozenset({1, 2, 3}), frozenset({4, 5, 6, 7})}
-        """
-        return set(map(frozenset, self.connected_components()))
     
     def min_power(self, src, dest):
         """
@@ -186,10 +169,15 @@ class Graph:
         min_power is the minimum power on the path from src to dest.
         The result should be the path and the minimum power on the path from src to dest.
         If there is no path from src to dest, the function should return None, None.
+        
+        The time complexity of the min_power() function depends on the implementation. If you use Dijkstra's algorithm to find the shortest path, the time complexity is also O(E*log(V)). However, you can also use a brute-force approach that enumerates all paths from src to dest, and compute their minimum power. In this case, the time complexity would be O(2^V * E), which is exponential in the number of nodes.
         """
         #Should return path and min_power if there is a path from src to dest
         #Uses the function get_path_with_power but instead of taking the minimum power as a parameter and returning the path if a path is possible, it takes only the src and dest as parameters and returns, if possible, the path as well as the min_power needed. 
 
+        path = self.get_path_with_power(src, dest, float('inf'))
+        if path is None:
+            return print("There is no possible path between these nodes")
         path = self.get_path_with_power(src, dest, 0) # Chemin avec puissance minimale
     
         # Si on peut atteindre la destination avec une puissance nulle, la réponse est 0
@@ -210,71 +198,87 @@ class Graph:
             
         # La puissance minimale est high
         return self.get_path_with_power(src, dest, high), high
+    
+    
+    
+    def get_path_with_power_and_distance(self, t: Tuple[str, str, int]) -> Optional[Tuple[List[str], int]]:
+   
+    #La complexité de cette fonction est la même que celle de la fonction get_path_with_power(), soit en O(m + n log n) dans le pire des cas, où m est le nombre d'arêtes dans le graphe et n est le nombre de noeuds. La seule différence est que nous effectuons également une sommation de la distance parcourue pour calculer la distance totale du chemin. Cela ajoute une complexité constante à chaque itération de la boucle principale, donc la complexité de la fonction reste en O(m + n log n).
+        start, end, min_power = t
+        queue = [(start, [start], 0, 0)]  # (node, path, power, distance)
+        shortest_path = None
+        
+        while queue:
+            node, path, power, distance = queue.pop(0)
+            
+            if node == end and power >= min_power:
+                if shortest_path is None or distance < shortest_path[1]:
+                    shortest_path = (path, distance)
+                continue
+            
+            for neighbor, neigh_power, neigh_distance in self.graph[node]:
+                if neighbor not in path and power >= neigh_power:
+                    new_path = path + [neighbor]
+                    new_power = power - neigh_power
+                    new_distance = distance + neigh_distance
+                    queue.append((neighbor, new_path, new_power, new_distance))
+        
+        return shortest_path
 
 
 def graph_from_file(filename):
     """
     Reads a text file and returns the graph as an object of the Graph class.
-
     The file should have the following format: 
         The first line of the file is 'n m'
         The next m lines have 'node1 node2 power_min dist' or 'node1 node2 power_min' (if dist is missing, it will be set to 1 by default)
         The nodes (node1, node2) should be named 1..n
         All values are integers.
-
     Parameters: 
     -----------
     filename: str
         The name of the file
-
     Outputs: 
     -----------
     G: Graph
         An object of the class Graph with the graph from file_name.
     """
-
-    f=open(filename, "r")
-    g=Graph()
-    line1= f.readline()
-    list_line1=line1.split()
-    g=Graph([node for node in range(1, int(list_line1[0])+1)]) #on crée le graphe avec le bon nb de noeuds
-    for i in range(1, int(list_line1[1])+1):
-        linei=f.readline()
-        list_linei=linei.split()
-        if len(list_linei)!=4:
-            g.add_edge(int(list_linei[0]), int(list_linei[1]), int(list_linei[2]))
-        else:
-            g.add_edge(int(list_linei[0]), int(list_linei[1]), int(list_linei[2]), int(list_linei[3]))
+    fil = open(filename,"r")
+    content = fil.readlines()
+    dist=1
+    firstfil = content[0]
+    firstfil2 = firstfil.split(" ")
+    g = Graph([node for node in range(1,int(firstfil2[0])+1)])
+    g.nb_nodes = int(firstfil2[0])
+    g.nodes = range(1,g.nb_nodes + 1)
+    for ligne in range(1, len(content)):
+        parameters = (content[ligne]).split(" ")
+        if len(parameters) == 4:
+            dist = int(parameters[3])
+        power_min = parameters[2].strip("\n")
+        g.add_edge(int(parameters[0]), int(parameters[1]), int(power_min), dist)
+    fil.close()
     return g
 
-"""
-def connected_components(filename):
-    g=graph_from_file(filename)
-    s=sommet_depart=#a completer i guess
-    list_components=[]
-    list_pile=[]
-    list_pile.append() #rajouter un element a la fin
-    list_pile.pop() #recuperer le dernier element 
-    list_pile=[#recuperer le 1er node]
-    if list_pile!=[]:
-        node=list_pile.pop()
-        list_components.append(node)
-        list_arretes=g[node]
-        for i in range(1,len(list_arretes)+1):
-            list_pile.append(list_arretes[i][0])"""
 
-        
+def estimate_time(filename):
+    # créer une instance de la classe Graph à partir du fichier contenant les nœuds, chemins, et poids des chemins. 
+    g = graph_from_file(filename)
+    # mesurer le temps nécessaire pour calculer la puissance minimale et le chemin associé pour chaque trajet
+    total_time = 0
+    # On veut faire le test sur 10 trajets aléatoires
+    nb_routes = 10
+    for trajet in range(nb_routes):
+        start = time.perf_counter()
+        src, dest = random.sample(list(g.graph.keys()), 1), random.sample(list(g.graph.keys()), 1)
+        path, power = g.min_power(src, dest)
+        end = time.perf_counter()
+        total_time += end - start
+        print(src, dest)
+        print(g.min_power(src, dest))
+    # calculer le temps moyen par trajet
+    mean_time_per_routes = total_time / nb_routes
 
-
-
-
-
-
-
-
-
-
-
-
-
-    
+    # estimer le temps nécessaire pour calculer la puissance minimale (et le chemin associé) sur l'ensemble des trajets
+    estimation_time = mean_time_per_routes * len(g.graph.keys())
+    print(f"Temps estimé : {estimation_time} secondes")

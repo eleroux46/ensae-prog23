@@ -13,6 +13,11 @@ class Test_GraphLoading_dist(unittest.TestCase):
         self.assertEqual(g.graph[1][0][2], 6)
         self.assertEqual(g.graph[4][0], (3,4,2))
         self.assertEqual(g.graph[8], [])
+    
+    def test_network1(self):
+        g=graph_from_file("input/network.1.in")
+        self.assertEqual(g.nb_nodes, 20)
+        self.assertEqual(g.graph[1][0][2], 6312)
 
 if __name__ == '__main__':
     unittest.main()
