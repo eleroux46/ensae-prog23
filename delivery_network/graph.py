@@ -270,8 +270,8 @@ def estimate_time(filename):
     nb_routes = 10
     for trajet in range(nb_routes):
         start = time.perf_counter()
-        src, dest = random.sample(list(g.graph.keys()), 1), random.sample(list(g.graph.keys()), 1)
-        path, power = g.min_power(src, dest)
+        src, dest = random.sample(g.nodes, 1), random.sample(g.nodes, 1)
+        g.min_power(src, dest)
         end = time.perf_counter()
         total_time += end - start
         print(src, dest)
@@ -280,5 +280,5 @@ def estimate_time(filename):
     mean_time_per_routes = total_time / nb_routes
 
     # estimer le temps nécessaire pour calculer la puissance minimale (et le chemin associé) sur l'ensemble des trajets
-    estimation_time = mean_time_per_routes * len(g.graph.keys())
+    estimation_time = mean_time_per_routes * len(g.nodes)
     print(f"Temps estimé : {estimation_time} secondes")
