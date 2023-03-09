@@ -282,3 +282,10 @@ def estimate_time(filename):
     # estimer le temps nécessaire pour calculer la puissance minimale (et le chemin associé) sur l'ensemble des trajets
     estimation_time = mean_time_per_routes * len(g.nodes)
     print(f"Temps estimé : {estimation_time} secondes")
+
+def estimate_graph(filename):
+    start = time.perf_counter()
+    g= graph_from_file(filename)
+    end = time.perf_counter()
+    total_time = end - start
+    print(total_time)
