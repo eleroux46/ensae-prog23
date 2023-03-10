@@ -14,7 +14,7 @@ print(g)"""
 from graph import Graph # on importe la classe graphe du fichier graph.py
 #g = Graph([1,2]) # creation d!un objet de type Graph
 #g.add_edge(1, 2, 4, 21)
-g = graph_from_file("input/network.1.in")
+g = graph_from_file("input/network.03.in")
 #print(g) # affichage du graphe
 #print(g.get_path_with_power(2,4,4))
 #print(g.min_power(2, 4))
@@ -24,5 +24,7 @@ g = graph_from_file("input/network.1.in")
 #print(estimate_time("input/network.02.in"))
 #estimate_graph("input/network.2.in")
 print(g.kruskal())
+print(g)
+print(g.min_power(1,4))
 
 
