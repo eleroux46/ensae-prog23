@@ -224,6 +224,33 @@ class Graph:
                     queue.append((neighbor, new_path, new_power, new_distance))
         
         return shortest_path
+    
+    
+    def kruskal(self):
+        start=time.perf_counter()
+        uf=UnionFind(self.nb_nodes)
+        #trier les aretes par ordre croissant:
+        edges=[(power, src, dest) for src in self.nodes for dest, power, _ in self.graph[src]]
+        edges.sort()
+        #former l'arbre couvrant de puissance minimale:
+        mst=Graph(self.nodes)
+        for power, src, dest in edges:
+            #finds the sets that contain src and dest
+            src_set= uf.find(src)
+            dest_set= uf.find(dest)
+            if src_set != dest_set:
+                mst.add_edge(src, dest, power)
+                uf.union(src_set, dest_set)
+        end=time.perf_counter()
+        print(end-start)
+        return mst
+
+
+
+
+
+
+
 
 
 def graph_from_file(filename):
@@ -271,11 +298,10 @@ def estimate_time(filename):
     for trajet in range(nb_routes):
         start = time.perf_counter()
         src, dest = random.sample(g.nodes, 1), random.sample(g.nodes, 1)
-        g.min_power(src, dest)
+        print(g.min_power(src, dest))
         end = time.perf_counter()
         total_time += end - start
         print(src, dest)
-        print(g.min_power(src, dest))
     # calculer le temps moyen par trajet
     mean_time_per_routes = total_time / nb_routes
 
@@ -289,3 +315,28 @@ def estimate_graph(filename):
     end = time.perf_counter()
     total_time = end - start
     print(total_time)
+
+
+class UnionFind:
+    def __init__(self,nb_nodes):
+        self.parent = list(range(int(nb_nodes)+1))
+        self.rank=[0]*(nb_nodes+1)
+
+    def find(self, node):
+        if self.parent[node] != node:
+            self.parent[node]=self.find(self.parent[node])
+        return self.parent[node]
+
+    def union(self, src, dest):
+        src_root = self.find(src)
+        dest_root = self.find(dest)
+        if src_root==dest_root:
+            return
+        if self.rank[src_root]<self.rank[dest_root]:
+            self.parent[src_root]=dest_root
+        elif self.rank[src_root]>self.rank[dest_root]:
+            self.parent[src_root]=dest_root
+        else:
+            self.parent[src_root]=dest_root
+            self.rank[src_root]+=1
+
