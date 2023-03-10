@@ -244,12 +244,15 @@ class Graph:
         end=time.perf_counter()
         print(end-start)
         return mst
+<<<<<<< HEAD
     
     def min_power_kruskal(self, src, dest):
         "apply kruskal fonction to a graph and return the path and the min power of the path between src and dest "
         mst=self.kruskal()
         return mst.min_power(src, dest)
         
+=======
+>>>>>>> 95bbe4810b9cbfa17a940b9b4f60e155d16476c6
 
 
 
@@ -344,4 +347,9 @@ class UnionFind:
             self.parent[src_root]=dest_root
         else:
             self.parent[src_root]=dest_root
+<<<<<<< HEAD
             self.rank[src_root]+=1
+=======
+            self.rank[src_root]+=1
+
+>>>>>>> 95bbe4810b9cbfa17a940b9b4f60e155d16476c6
