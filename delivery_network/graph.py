@@ -55,7 +55,6 @@ class Graph:
     def add_edge(self, node1, node2, power_min, dist=1):
         """
         Adds an edge to the graph. Graphs are not oriented, hence an edge is added to the adjacency list of both end nodes. 
-
         Parameters: 
         -----------
         node1: NodeType
@@ -225,23 +224,53 @@ class Graph:
                     queue.append((neighbor, new_path, new_power, new_distance))
         
         return shortest_path
+    
+    
+    def kruskal(self):
+        start=time.perf_counter()
+        uf=UnionFind(self.nb_nodes)
+        #trier les aretes par ordre croissant:
+        edges=[(power, src, dest) for src in self.nodes for dest, power, _ in self.graph[src]]
+        edges.sort()
+        #former l'arbre couvrant de puissance minimale:
+        mst=Graph(self.nodes)
+        for power, src, dest in edges:
+            #finds the sets that contain src and dest
+            src_set= uf.find(src)
+            dest_set= uf.find(dest)
+            if src_set != dest_set:
+                mst.add_edge(src, dest, power)
+                uf.union(src_set, dest_set)
+        end=time.perf_counter()
+        print(end-start)
+        return mst
+    
+    def min_power_kruskal(self, src, dest):
+        "apply kruskal fonction to a graph and return the path and the min power of the path between src and dest "
+        mst=self.kruskal()
+        return mst.min_power(src, dest)
+        
+
+
+
+
+
+
+
 
 
 def graph_from_file(filename):
     """
     Reads a text file and returns the graph as an object of the Graph class.
-
     The file should have the following format: 
         The first line of the file is 'n m'
         The next m lines have 'node1 node2 power_min dist' or 'node1 node2 power_min' (if dist is missing, it will be set to 1 by default)
         The nodes (node1, node2) should be named 1..n
         All values are integers.
-
     Parameters: 
     -----------
     filename: str
         The name of the file
-
     Outputs: 
     -----------
     G: Graph
@@ -274,31 +303,45 @@ def estimate_time(filename):
     nb_routes = 10
     for trajet in range(nb_routes):
         start = time.perf_counter()
-        src, dest = random.sample(list(g.graph.keys()), 1), random.sample(list(g.graph.keys()), 1)
-        path, power = g.min_power(src, dest)
+        src, dest = random.sample(g.nodes, 1), random.sample(g.nodes, 1)
+        print(g.min_power(src, dest))
         end = time.perf_counter()
         total_time += end - start
         print(src, dest)
-        print(g.min_power(src, dest))
     # calculer le temps moyen par trajet
     mean_time_per_routes = total_time / nb_routes
 
     # estimer le temps nécessaire pour calculer la puissance minimale (et le chemin associé) sur l'ensemble des trajets
-    estimation_time = mean_time_per_routes * len(g.graph.keys())
+    estimation_time = mean_time_per_routes * len(g.nodes)
     print(f"Temps estimé : {estimation_time} secondes")
 
-        
+def estimate_graph(filename):
+    start = time.perf_counter()
+    g= graph_from_file(filename)
+    end = time.perf_counter()
+    total_time = end - start
+    print(total_time)
 
 
+class UnionFind:
+    def __init__(self,nb_nodes):
+        self.parent = list(range(int(nb_nodes)+1))
+        self.rank=[0]*(nb_nodes+1)
 
+    def find(self, node):
+        if self.parent[node] != node:
+            self.parent[node]=self.find(self.parent[node])
+        return self.parent[node]
 
-
-
-
-
-
-
-
-
-
-    
+    def union(self, src, dest):
+        src_root = self.find(src)
+        dest_root = self.find(dest)
+        if src_root==dest_root:
+            return
+        if self.rank[src_root]<self.rank[dest_root]:
+            self.parent[src_root]=dest_root
+        elif self.rank[src_root]>self.rank[dest_root]:
+            self.parent[src_root]=dest_root
+        else:
+            self.parent[src_root]=dest_root
+            self.rank[src_root]+=1
