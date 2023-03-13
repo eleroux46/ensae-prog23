@@ -52,9 +52,11 @@ class Graph:
                 output += f"{source}-->{destination}\n"
         return output
     
+    
     def add_edge(self, node1, node2, power_min, dist=1):
         """
         Adds an edge to the graph. Graphs are not oriented, hence an edge is added to the adjacency list of both end nodes. 
+
         Parameters: 
         -----------
         node1: NodeType
@@ -81,12 +83,16 @@ class Graph:
     
 
     def connected_components(self):
+    
         """
-        The connected_components() function finds the connected components of the graph using depth-first search. It returns a list of lists, where each inner list contains the nodes of a connected component.
-        The time complexity of this function is O(V+E), where V is the number of nodes and E is the number of edges. This is because the function visits each node and each edge exactly once using depth-first search.
+        La fonction 'connected_components()'trouve les composantes connectes du graphe. Pour faire cela, elle utilise un parcours en profondeur (fonction 'dfs()') en utilisant une fonction récursive. 
+        Elle prend en paramètre un graphe et retourne une liste de composantes connexes (liste de listes)
+        Sachant que V est le nombre de nodes et E est le nombre d'edges, la complexité est O(V+E) : cela est dû à l'utilisation du DFS
         """
+        
         components_list = []
         marked_sommet = {sommet:False for sommet in self.nodes}
+        #Implémentation du dfs (parcours en profondeur):
         def dfs(sommet):
             component = [sommet]
             for neighbour in self.graph[sommet]:
@@ -95,7 +101,7 @@ class Graph:
                     marked_sommet[neighbour] = True
                     component += dfs(neighbour)
             return component
-
+        #on construit la liste des composantes connexes:
         for sommet in self.nodes:
             if not marked_sommet[sommet]:
                 components_list.append(dfs(sommet))
@@ -115,6 +121,12 @@ class Graph:
 
         
     def bfs(self, depart, fin, power):
+        """
+        Cette fonction prend en paramètre un node de départ, fin et une puissance de camion et retourne, en utilisant un parcours de largeur.
+        Elle décide si un camion d'une certaine puissance peut couvrir le trajet (sinon retourne None), et si c'est possible, retourne le chemin. 
+        
+
+        """
         #erreur = 0 
         path=[]
         i = 0 
@@ -127,12 +139,14 @@ class Graph:
             for neighbour in self.graph[node]: 
                 if neighbour[0] not in path:
                     neighbour_and_pwr[neighbour[0]] = neighbour[1]
-            to_remove = []  # initialisation de la liste des noeuds à supprimer
+            # initialisation de la liste des noeuds à supprimer
+            to_remove = []  
             for element, values in neighbour_and_pwr.items():
-                if values > power:  # si la puissance du lien est supérieure à power
-                    to_remove.append(element)  # on stocke l'élément dans la liste à supprimer
+                if values > power:  # si la puissance du lien est supérieure à power, on stocke l'élément dans la liste à supprimer
+                    to_remove.append(element)  
+             # on supprime les éléments stockés dans la liste à supprimer
             for element in to_remove:
-                del neighbour_and_pwr[element]  # on supprime les éléments stockés dans la liste à supprimer
+                del neighbour_and_pwr[element] 
             for adjacent_node in neighbour_and_pwr.keys():
                 #erreur += 1
                 if adjacent_node == fin:
@@ -143,137 +157,129 @@ class Graph:
 
 
     def get_path_with_power(self, src, dest, power):
-        """Should return path.
-        path is a list of nodes representing the path from src to dest that requires at least power power.
-        The result should be the path with the smallest number of nodes and that requires at least power power.
-        If there is no such path, the function should return None.
+        """
+        Cette fonction décide si un trajet est possible entre deux nodes et sachant une puissance de camion fixée.
+        En regardant les composantes connexes, elle s'intéresse au fait que le point de départ et d'arrivée soient dans le même composante connexe et applique auquel cas un parcours en largeur. 
         
-        The time complexity of the get_path_with_power() function is O(Elog(V)), where V is the number of nodes and E is the number of edges. This is because the function uses Dijkstra's algorithm, which has a time complexity of O(Elog(V)).
+        la complexité est O(E + V), car elle utilise un parcours en largeur (bfs) car chaque edges et chaque nodes est au maximum visité une fois. 
         """
         chemin = []
         connected=self.connected_components()
         for i in range(0, len(connected)):
             if src and dest in connected[i]:
-            #marked_sommet = {sommet:False for sommet in connected[i]} #O(n): complexite a peu pres le nb de noeuds dans le graphe 
                 chemin= self.bfs(src, dest, power)                
             else : 
-                None      
-            #if dest not in chemin:
-               # chemin = None           
+                None            
         return chemin
+    
     
     def min_power(self, src, dest):
         """
-        Should return path, min_power. 
-        path is a list of nodes representing the path from src to dest.
-        min_power is the minimum power on the path from src to dest.
-        The result should be the path and the minimum power on the path from src to dest.
-        If there is no path from src to dest, the function should return None, None.
+        Cette fonction prend en paramètre un noeud de départ et d'arrivée et décide du power minimal nécessaire pour couvrir le trajet.
+        Si il n'y a pas de chemin possible, min_power() retourne None
         
-        The time complexity of the min_power() function depends on the implementation. If you use Dijkstra's algorithm to find the shortest path, the time complexity is also O(E*log(V)). However, you can also use a brute-force approach that enumerates all paths from src to dest, and compute their minimum power. In this case, the time complexity would be O(2^V * E), which is exponential in the number of nodes.
+        Cette fonction utilise la fonction 'get_path_with_power()' qui a une complexité O(V+E) et un algorithme de recherche binaire. Dans la boucle, à chaque itération on appelle la fonction get_path_with_power() donc la complexité est O(ln(high)) avec high la puissance minimale au sein du graphe. Donc la complexité totale est de O((V+E)*ln(high)) 
         """
-        #Should return path and min_power if there is a path from src to dest
-        #Uses the function get_path_with_power but instead of taking the minimum power as a parameter and returning the path if a path is possible, it takes only the src and dest as parameters and returns, if possible, the path as well as the min_power needed. 
 
         path = self.get_path_with_power(src, dest, float('inf'))
         if path is None:
             return print("There is no possible path between these nodes")
         path = self.get_path_with_power(src, dest, 0) # Chemin avec puissance minimale
-    
         # Si on peut atteindre la destination avec une puissance nulle, la réponse est 0
         if path is not None:
             return path, 0
-    
-        # Sinon, on fait une recherche binaire sur l'intervalle [0, max_power]
+        # Sinon on fait une recherche binaire sur l'intervalle [0, high]
         low = 1
         high = max(edge[1] for node_edges in self.graph.values() for edge in node_edges)
         high = int(high)
         while low < high:
             mid = (low + high) // 2
             path = self.get_path_with_power(src, dest, mid)
+            print("mid", mid)
+            print("path", path)
             if path is not None:
                 high = mid
             else:
                 low = mid + 1
-            
         # La puissance minimale est high
         return self.get_path_with_power(src, dest, high), high
     
     
     
-    def get_path_with_power_and_distance(self, t: Tuple[str, str, int]) -> Optional[Tuple[List[str], int]]:
+    def kruskal(self):
+        """
+        La fonction kruskal prend en entrée un graphe au format Graph et retourne un autre élément de cette classe. 
+        Il fait passer un graphe à un arbre couvrant de poids minimal i.e.un arbre couvrant ((un arbre qui connecte tous les sommets ensemble) dont la somme des poids des arêtes est minimale par rapport aux autres arbres couvrant
+                                                                                             
+        La complexité de kruskal est O(Eln(E) + Eln(V)) car : 
+            - Etape 1 : Cette création de n ensembles : complexité de O(n)
+            - Etape 2 : le tri parcourant les arrêtes (les E arrêtes) : donc complexité de O(Eln(E))
+            - Etape 3 : la recherche et l'union de deux ensembles a une complexité de O(ln(V))
+        La complexité dépend donc de la taille du graphe et de a dénsité des arrêtes
+        """
+        #Etape 1 : Crée un ensemble pour chaque node qui stock ses composantes connexes
+        uf = UnionFind(len(self.nodes))
+        #Etape 2 : on trie selon la puissance 
+        edges = [(weight, u, v) for u in self.graph for v, weight, _ in self.graph[u]]
+        edges.sort()
+        #Etape 3 : construction de l'arbre couvrant de puissance minimal
+        mst = Graph(nodes=self.nodes)
+        for weight, u, v in edges:
+            u_set = uf.find(u)
+            v_set = uf.find(v)
+            if u_set != v_set:
+                mst.add_edge(u, v, weight)
+                uf.union(u_set, v_set)
+        return mst
+    
+
+
+
+    def get_path_with_power_and_distance(self, start, end, min_power):
    
     #La complexité de cette fonction est la même que celle de la fonction get_path_with_power(), soit en O(m + n log n) dans le pire des cas, où m est le nombre d'arêtes dans le graphe et n est le nombre de noeuds. La seule différence est que nous effectuons également une sommation de la distance parcourue pour calculer la distance totale du chemin. Cela ajoute une complexité constante à chaque itération de la boucle principale, donc la complexité de la fonction reste en O(m + n log n).
-        start, end, min_power = t
         queue = [(start, [start], 0, 0)]  # (node, path, power, distance)
         shortest_path = None
-        
         while queue:
-            node, path, power, distance = queue.pop(0)
-            
+            node, path, power, distance = queue.pop(0) 
             if node == end and power >= min_power:
                 if shortest_path is None or distance < shortest_path[1]:
                     shortest_path = (path, distance)
                 continue
-            
             for neighbor, neigh_power, neigh_distance in self.graph[node]:
                 if neighbor not in path and power >= neigh_power:
                     new_path = path + [neighbor]
                     new_power = power - neigh_power
                     new_distance = distance + neigh_distance
                     queue.append((neighbor, new_path, new_power, new_distance))
-        
-        return shortest_path
+        return queue
     
-    
-    def kruskal(self):
-        start=time.perf_counter()
-        uf=UnionFind(self.nb_nodes)
-        #trier les aretes par ordre croissant:
-        edges=[(power, src, dest) for src in self.nodes for dest, power, _ in self.graph[src]]
-        edges.sort()
-        #former l'arbre couvrant de puissance minimale:
-        mst=Graph(self.nodes)
-        for power, src, dest in edges:
-            #finds the sets that contain src and dest
-            src_set= uf.find(src)
-            dest_set= uf.find(dest)
-            if src_set != dest_set:
-                mst.add_edge(src, dest, power)
-                uf.union(src_set, dest_set)
-        end=time.perf_counter()
-        print(end-start)
-        return mst
-<<<<<<< HEAD
     
     def min_power_kruskal(self, src, dest):
-        "apply kruskal fonction to a graph and return the path and the min power of the path between src and dest "
+        """
+        La fonction prend un point de départ et d'arrivée en paramètre.
+        Elle retourne le min_power du graphe après lui avoir appliqué kruskal
+        """
         mst=self.kruskal()
         return mst.min_power(src, dest)
-        
-=======
->>>>>>> 95bbe4810b9cbfa17a940b9b4f60e155d16476c6
-
-
-
-
-
-
-
-
+    
+    
 
 def graph_from_file(filename):
     """
     Reads a text file and returns the graph as an object of the Graph class.
+
     The file should have the following format: 
         The first line of the file is 'n m'
         The next m lines have 'node1 node2 power_min dist' or 'node1 node2 power_min' (if dist is missing, it will be set to 1 by default)
         The nodes (node1, node2) should be named 1..n
         All values are integers.
+
     Parameters: 
     -----------
     filename: str
         The name of the file
+
     Outputs: 
     -----------
     G: Graph
@@ -290,66 +296,62 @@ def graph_from_file(filename):
     for ligne in range(1, len(content)):
         parameters = (content[ligne]).split(" ")
         if len(parameters) == 4:
-            dist = int(parameters[3])
+            dist = float(parameters[3])
         power_min = parameters[2].strip("\n")
         g.add_edge(int(parameters[0]), int(parameters[1]), int(power_min), dist)
     fil.close()
     return g
 
 
-def estimate_time(filename):
+def estimate_time(argument):
     # créer une instance de la classe Graph à partir du fichier contenant les nœuds, chemins, et poids des chemins. 
-    g = graph_from_file(filename)
+    g = graph_from_file(f"input/network.{argument}.in")
+    h= open(f"input/routes.{argument}.in")
     # mesurer le temps nécessaire pour calculer la puissance minimale et le chemin associé pour chaque trajet
     total_time = 0
     # On veut faire le test sur 10 trajets aléatoires
     nb_routes = 10
+    lignes=[]
+    for i in range(nb_routes):
+        lignes.append(random.randint(1,nb_routes-1))
+    lignes.append(0)
+    lignes.sort()
     for trajet in range(nb_routes):
+        for i in range(lignes[trajet+1]-lignes[trajet]):
+            print(h.readline())
+        src, dest,_ = h.readline().split()
+        src=int(src)
+        dest=int(dest)
         start = time.perf_counter()
-        src, dest = random.sample(g.nodes, 1), random.sample(g.nodes, 1)
-        print(g.min_power(src, dest))
         end = time.perf_counter()
         total_time += end - start
-        print(src, dest)
     # calculer le temps moyen par trajet
     mean_time_per_routes = total_time / nb_routes
-
     # estimer le temps nécessaire pour calculer la puissance minimale (et le chemin associé) sur l'ensemble des trajets
     estimation_time = mean_time_per_routes * len(g.nodes)
     print(f"Temps estimé : {estimation_time} secondes")
-
-def estimate_graph(filename):
-    start = time.perf_counter()
-    g= graph_from_file(filename)
-    end = time.perf_counter()
-    total_time = end - start
-    print(total_time)
+        
 
 
 class UnionFind:
-    def __init__(self,nb_nodes):
-        self.parent = list(range(int(nb_nodes)+1))
-        self.rank=[0]*(nb_nodes+1)
-
-    def find(self, node):
-        if self.parent[node] != node:
-            self.parent[node]=self.find(self.parent[node])
-        return self.parent[node]
-
-    def union(self, src, dest):
-        src_root = self.find(src)
-        dest_root = self.find(dest)
-        if src_root==dest_root:
-            return
-        if self.rank[src_root]<self.rank[dest_root]:
-            self.parent[src_root]=dest_root
-        elif self.rank[src_root]>self.rank[dest_root]:
-            self.parent[src_root]=dest_root
+    def __init__(self, n):
+        self.parent = list(range(n+1))
+        self.rank = [0] * (n+1)
+    
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+    
+    def union(self, x, y):
+        xroot = self.find(x)
+        yroot = self.find(y)
+        if xroot == yroot:
+            return False
+        if self.rank[xroot] < self.rank[yroot]:
+            self.parent[xroot] = yroot
+        elif self.rank[xroot] > self.rank[yroot]:
+            self.parent[yroot] = xroot
         else:
-            self.parent[src_root]=dest_root
-<<<<<<< HEAD
-            self.rank[src_root]+=1
-=======
-            self.rank[src_root]+=1
-
->>>>>>> 95bbe4810b9cbfa17a940b9b4f60e155d16476c6
+            self.parent[yroot] = xroot
+            #rank +1???
