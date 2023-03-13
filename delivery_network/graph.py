@@ -206,7 +206,7 @@ class Graph:
     
     
     
-    def kruskal(self):
+      def kruskal(self):
         """
         La fonction kruskal prend en entrée un graphe au format Graph et retourne un autre élément de cette classe. 
         Il fait passer un graphe à un arbre couvrant de poids minimal i.e.un arbre couvrant ((un arbre qui connecte tous les sommets ensemble) dont la somme des poids des arêtes est minimale par rapport aux autres arbres couvrant
@@ -218,18 +218,22 @@ class Graph:
         La complexité dépend donc de la taille du graphe et de a dénsité des arrêtes
         """
         #Etape 1 : Crée un ensemble pour chaque node qui stock ses composantes connexes
-        uf = UnionFind(len(self.nodes))
-        #Etape 2 : on trie selon la puissance 
-        edges = [(weight, u, v) for u in self.graph for v, weight, _ in self.graph[u]]
+        start=time.perf_counter()
+        uf=UnionFind(self.nb_nodes)
+        #Etape 2 : trier les aretes par ordre croissant:
+        edges=[(power, src, dest) for src in self.nodes for dest, power, _ in self.graph[src]]
         edges.sort()
         #Etape 3 : construction de l'arbre couvrant de puissance minimal
-        mst = Graph(nodes=self.nodes)
-        for weight, u, v in edges:
-            u_set = uf.find(u)
-            v_set = uf.find(v)
-            if u_set != v_set:
-                mst.add_edge(u, v, weight)
-                uf.union(u_set, v_set)
+        mst=Graph(self.nodes)
+        for power, src, dest in edges:
+            #finds the sets that contain src and dest
+            src_set= uf.find(src)
+            dest_set= uf.find(dest)
+            if src_set != dest_set:
+                mst.add_edge(src, dest, power)
+                uf.union(src_set, dest_set)
+        end=time.perf_counter()
+        print(end-start)
         return mst
     
 
