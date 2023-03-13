@@ -15,12 +15,16 @@ from graph import Graph # on importe la classe graphe du fichier graph.py
 #g = Graph([1,2]) # creation d!un objet de type Graph
 #g.add_edge(1, 2, 4, 21)
 <<<<<<< HEAD
+<<<<<<< HEAD
 g = graph_from_file("input/network.03.in")
 print(g) # affichage du graphe
 #print(g.get_path_with_power(1,2,5))
 print(g.min_power_kruskal(1,4))
 =======
 g = graph_from_file("input/network.1.in")
+=======
+g = graph_from_file("input/network.03.in")
+>>>>>>> 24dfcdff3c85077364bcb9ac55ba0b2b2de3fc4d
 #print(g) # affichage du graphe
 #print(g.get_path_with_power(2,4,4))
 #print(g.min_power(2, 4))
@@ -30,6 +34,8 @@ g = graph_from_file("input/network.1.in")
 #print(estimate_time("input/network.02.in"))
 #estimate_graph("input/network.2.in")
 print(g.kruskal())
+print(g)
+print(g.min_power(1,4))
 
 >>>>>>> 95bbe4810b9cbfa17a940b9b4f60e155d16476c6
 
