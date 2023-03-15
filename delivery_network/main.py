@@ -1,5 +1,5 @@
 
-from graph import Graph, graph_from_file, estimate_time, estimate_graph, UnionFind
+from graph import Graph, graph_from_file, estimate_time, UnionFind, compare, stock_results
 from collections import deque
 
 """
@@ -14,15 +14,18 @@ print(g)"""
 from graph import Graph # on importe la classe graphe du fichier graph.py
 #g = Graph([1,2]) # creation d!un objet de type Graph
 #g.add_edge(1, 2, 4, 21)
-#g = graph_from_file("input/network.1.in")
+#g = graph_from_file("input/network.02.in")
 #print(g) # affichage du graphe
 #print(g.get_path_with_power(2,4,4))
-#print(g.min_power(20, 11))
+#print(g.min_power(1, 2))
 #print(g.bfs(1,10,15))
 #print(g.connected_components_set())
 #print(g.min_power(3, 1))
-print(estimate_time(2))
+#print(estimate_time(2))
 #estimate_graph("input/network.2.in")
+#print(g.kruskal())
+print(compare(3))
+#stock_results(1)
 
 
 
