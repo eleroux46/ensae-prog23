@@ -201,10 +201,9 @@ class Graph:
     
     
     
-    def get_path_with_power_and_distance(self, t: Tuple[str, str, int]) -> Optional[Tuple[List[str], int]]:
+    def get_path_with_power_and_distance(self, start, end, min_power) -> Optional[Tuple[List[str], int]]:
    
     #La complexité de cette fonction est la même que celle de la fonction get_path_with_power(), soit en O(m + n log n) dans le pire des cas, où m est le nombre d'arêtes dans le graphe et n est le nombre de noeuds. La seule différence est que nous effectuons également une sommation de la distance parcourue pour calculer la distance totale du chemin. Cela ajoute une complexité constante à chaque itération de la boucle principale, donc la complexité de la fonction reste en O(m + n log n).
-        start, end, min_power = t
         queue = [(start, [start], 0, 0)]  # (node, path, power, distance)
         shortest_path = None
         
@@ -244,6 +243,12 @@ class Graph:
         end=time.perf_counter()
         print(end-start)
         return mst
+    
+    def min_power_kruskal(self, src, dest):
+        "apply kruskal fonction to a graph and return the path and the min power of the path between src and dest "
+        mst=self.kruskal()
+        return mst.min_power(src, dest)
+        
 
 
 
@@ -288,16 +293,26 @@ def graph_from_file(filename):
     return g
 
 
-def estimate_time(filename):
+def estimate_time(argument):
     # créer une instance de la classe Graph à partir du fichier contenant les nœuds, chemins, et poids des chemins. 
-    g = graph_from_file(filename)
+    g = graph_from_file(f"input/network.{argument}.in")
+    h= open(f"input/routes.{argument}.in")
     # mesurer le temps nécessaire pour calculer la puissance minimale et le chemin associé pour chaque trajet
     total_time = 0
     # On veut faire le test sur 10 trajets aléatoires
     nb_routes = 10
+    lignes=[]
+    for i in range(nb_routes):
+        lignes.append(random.randint(1,nb_routes-1))
+    lignes.append(0)
+    lignes.sort()
     for trajet in range(nb_routes):
+        for i in range(lignes[trajet+1]-lignes[trajet]):
+            print(h.readline())
+        src, dest,_ = h.readline().split()
+        src=int(src)
+        dest=int(dest)
         start = time.perf_counter()
-        src, dest = random.sample(g.nodes, 1), random.sample(g.nodes, 1)
         print(g.min_power(src, dest))
         end = time.perf_counter()
         total_time += end - start
@@ -339,4 +354,3 @@ class UnionFind:
         else:
             self.parent[src_root]=dest_root
             self.rank[src_root]+=1
-
