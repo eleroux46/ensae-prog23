@@ -50,9 +50,11 @@ class Graph:
                 output += f"{source}-->{destination}\n"
         return output
     
+    
     def add_edge(self, node1, node2, power_min, dist=1):
         """
         Adds an edge to the graph. Graphs are not oriented, hence an edge is added to the adjacency list of both end nodes. 
+
         Parameters: 
         -----------
         node1: NodeType
@@ -79,11 +81,13 @@ class Graph:
     
 
     def connected_components(self):
+    
         """
         The connected_components function uses the depth-first search algorithm (parcours en profondeur). 
         It takes a graph as parameter and returns a list of connected components (a list of lists).
         The time complexity of this function is O(V+E) (V is the number of nodes and E is the number of edges). This is due to the use of dfs.
         """
+        
         components_list = []
         marked_sommet = {sommet:False for sommet in self.nodes}
         #implementation of the dfs algorithm:
@@ -166,6 +170,7 @@ class Graph:
                 None  #if they are not connected, there is no path between them              
         return chemin
     
+    
     def min_power(self, src, dest):
         """
         this function takes a node of origin and a node of destination as parameters and returns the minimal power necessary for the path.
@@ -189,6 +194,8 @@ class Graph:
         while low < high:
             mid = (low + high) // 2
             path = self.get_path_with_power(src, dest, mid)
+            print("mid", mid)
+            print("path", path)
             if path is not None:
                 high = mid
             else:
@@ -248,15 +255,18 @@ class Graph:
 def graph_from_file(filename):
     """
     Reads a text file and returns the graph as an object of the Graph class.
+
     The file should have the following format: 
         The first line of the file is 'n m'
         The next m lines have 'node1 node2 power_min dist' or 'node1 node2 power_min' (if dist is missing, it will be set to 1 by default)
         The nodes (node1, node2) should be named 1..n
         All values are integers.
+
     Parameters: 
     -----------
     filename: str
         The name of the file
+
     Outputs: 
     -----------
     G: Graph
@@ -273,7 +283,7 @@ def graph_from_file(filename):
     for ligne in range(1, len(content)):
         parameters = (content[ligne]).split(" ")
         if len(parameters) == 4:
-            dist = int(parameters[3])
+            dist = float(parameters[3])
         power_min = parameters[2].strip("\n")
         g.add_edge(int(parameters[0]), int(parameters[1]), int(power_min), dist)
     fil.close()
