@@ -359,6 +359,12 @@ def compare(argument):
     # estimating the time necessary to calculate the min power on all of the routes
     estimation_time = mean_time_per_routes * len(g.nodes)
     print(f"La différence de temps estimée est de : {time1-estimation_time} secondes")
+    
+    """
+    for the network.1 the function min_power_kruskal appears to be faster than the min_power, but for the network.2 min_power is faster than min_power_krukal.
+    This can maybe be explained by the fact that the complexity of min_power_kruskal is higher because of all the functions it uses.
+    But for the networks 3-10, the function min_power_kruskal is able to find results where the function min_power does not, so it seems to be better on larger datasets.
+    """
 
 
 def stock_results(argument):
