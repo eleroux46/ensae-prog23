@@ -194,8 +194,6 @@ class Graph:
         while low < high:
             mid = (low + high) // 2
             path = self.get_path_with_power(src, dest, mid)
-            print("mid", mid)
-            print("path", path)
             if path is not None:
                 high = mid
             else:
