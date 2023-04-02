@@ -34,6 +34,12 @@ class Graph:
         self.graph = dict([(n, []) for n in nodes])
         self.nb_nodes = len(nodes)
         self.nb_edges = 0
+        self.list_parent=[]
+        self.list_rank=[]
+        self.components_list=[]
+        self.rank_dict= dict([(n, []) for n in nodes])
+        self.parent_dict=dict([(n, []) for n in nodes])
+        self.mst= dict([(n, []) for n in nodes])
     
 
     def __str__(self):
@@ -127,13 +133,14 @@ class Graph:
         """
         #initialisation
         path=[]
+        visited=set()
         queue=deque()
         queue.append((depart, [depart]))
         while queue: 
             node, path=queue.popleft()
             neighbour_and_pwr = dict()
             for neighbour in self.graph[node]: 
-                if neighbour[0] not in path:
+                if neighbour[0] not in visited:
                     neighbour_and_pwr[neighbour[0]] = neighbour[1]
             # initialisation of the list of nodes to be removed
             to_remove = [] 
@@ -150,6 +157,7 @@ class Graph:
                     return path + [adjacent_node]
                 else:
                     queue.append((adjacent_node, path + [adjacent_node])) #the node is added to the path 
+                    visited.add(adjacent_node)
        
 
 
@@ -228,6 +236,10 @@ class Graph:
             if src_set != dest_set: #if the nodes are not already connected, the edge is added to the mst
                 mst.add_edge(src, dest, power)
                 uf.union(src_set, dest_set)
+        mst.list_parent=uf.parent
+        mst.list_rank=uf.rank 
+        #mst.components_list, mst.rank_dict, mst.parent_dict, _= self.build_caracteristics()
+
         return mst
     
 
@@ -240,8 +252,182 @@ class Graph:
         The complexity of the min_power_kruskal function is O(Eln(E)+Eln(V) + (V+E)*ln(high)) (where high is the power_max) because it uses the functions krukal and min_power.
         But 
         """
+        _, p_min = self.get_path_with_kruskal(src, dest)
+        return p_min
+
+
+
+
+    def build_caracteristics(self):
+        components_list=[]
+    
+        marked_sommet = {sommet:False for sommet in self.nodes}
         mst=self.kruskal()
-        return mst.min_power(src, dest) 
+        rank_dict={node:0 for node in self.nodes}
+        parent_dict={node:0 for node in self.nodes}
+        i=[0] #compteur de profondeur 
+
+        def dfs2(sommet):
+            #implementation of the dfs algorithm:
+            component = [sommet]
+            i[0]+=1 #on indente 
+            for neighbour in mst.graph[sommet]:
+                
+                neighbour, power = neighbour[0], neighbour[1]
+
+                
+                if not marked_sommet[neighbour] :
+                    #print(power)
+                    marked_sommet[neighbour] = True
+                    rank_dict[neighbour]= i[0]
+                    parent_dict[neighbour]=sommet 
+                    component += dfs2(neighbour)
+            i[0]-=1
+            
+            return component
+        
+        
+        for sommet in self.nodes:
+            
+            if not marked_sommet[sommet]:
+                
+                components_list.append(dfs2(sommet))
+            
+                
+        #parent_dict[self.nodes[0]]=self.nodes[0]#on redéfinit le parent du premier node comme lui mm (donc le plus vieux ancêtre): décidé arbitrairement
+        self.components_list= components_list
+        self.rank_dict = rank_dict
+        self.parent_dict = parent_dict
+
+        return components_list, rank_dict, parent_dict, mst
+
+
+        """A FAIRE : IL FAUT RECUPERER LE POWER SUR LE TRUC TYPE MST.GRAPH[NODE] ET A CHAQUE NODE VISITE ON PREND LE POWER IMPORTANT 
+        DU COUP SOIT DANS L4ETAPE DU RANK
+        SOIT JE LE RECUPERE PLUS TARD UNE FOIS QUE JAI LE CHEMIN """
+
+    def min_power_kruskal(self, src, dest):
+
+
+        """components_list=[]
+    
+        marked_sommet = {sommet:False for sommet in self.nodes}
+        mst=self.kruskal()
+        rank_dict={node:0 for node in self.nodes}
+        parent_dict={node:0 for node in self.nodes}
+        i=[0] #compteur de profondeur 
+
+        def dfs2(sommet):
+            #implementation of the dfs algorithm:
+            component = [sommet]
+            i[0]+=1 #on indente 
+            for neighbour in mst.graph[sommet]:
+                
+                neighbour, power = neighbour[0], neighbour[1]
+
+                
+                if not marked_sommet[neighbour]:
+                    #print(power)
+                    marked_sommet[neighbour] = True
+                    rank_dict[neighbour]= i[0]
+                    parent_dict[neighbour]=sommet 
+                    component += dfs2(neighbour)
+            i[0]-=1
+            
+            return component
+        
+        start = time.perf_counter()
+        for sommet in self.nodes:
+            
+            if not marked_sommet[sommet]:
+                components=dfs2(sommet)
+                components=set(components) #transformation en set dans l'espoir que ça prenne moins de temps que de parcourir une liste après 
+                
+                components_list.append(components)
+        end =time.perf_counter()
+        total=end-start
+        print(f"tps dfs : {total}")
+
+"""
+
+        #mst=self.kruskal()
+        #components_list, rank_dict, parent_dict, mst= self.build_caracteristics()
+
+        rank_src= self.rank_dict[src]
+        rank_dest= self.rank_dict[dest]
+        #list_parents_dest=[dest]
+        #list_parents_src=[src]
+
+        parent_dest=dest
+        parent_src=src
+        p_min=0
+
+
+        
+        for i in range(0, len(self.components_list)):
+            if src and dest in self.components_list[i]: #PB DE LISTE ICI ???
+                #start1=time.perf_counter()
+
+                if rank_src < rank_dest:
+                    #print(self.mst.graph[parent_dest])
+                    while rank_src < rank_dest:
+                        
+                        for neighbour in self.mst.graph[parent_dest] : #récupérer les voisins du node dont on cherche le parent
+                            if neighbour[0]==self.parent_dict[parent_dest]: #si ce voisin est le parent, on récupère le power
+                                power1=neighbour[1]
+                                if power1 > p_min:
+                                    p_min=power1 #si le power est le plus grand, il devient la puissance min nécessaire 
+                        #list_parents_dest.append(parent_dict[list_parents_dest[-1]])#changer dest par le parent 
+                        parent_dest=self.parent_dict[parent_dest]
+                        rank_dest -=1
+
+                elif rank_src > rank_dest:
+                    while rank_src > rank_dest:
+                        
+                        for neighbour in self.mst.graph[parent_src] : #récupérer les voisins du node dont on cherche le parent
+                            if neighbour[0]==self.parent_dict[parent_src]: #si ce voisin est le parent, on récupère le power
+                                power2=neighbour[1]
+                                if power2 > p_min:
+                                    p_min=power2 #si le power est le plus grand, il devient la puissance min nécessaire
+                        #list_parents_src.append(parent_dict[list_parents_src[-1]])    
+                        parent_src=self.parent_dict[parent_src]        
+                        rank_src -=1
+
+                #while list_parents_dest[-1] != list_parents_src[-1]:
+
+                while parent_src != parent_dest:
+                    
+
+                    for neighbour in self.mst.graph[parent_dest] : #récupérer les voisins du node dont on cherche le parent
+                            if neighbour[0]==self.parent_dict[parent_dest]: #si ce voisin est le parent, on récupère le power
+                                power3=neighbour[1]
+                                if power3 > p_min:
+                                    p_min=power3 #si le power est le plus grand, il devient la puissance min nécessaire
+                    
+                    for neighbour in self.mst.graph[parent_src] : #récupérer les voisins du node dont on cherche le parent
+                            if neighbour[0]==self.parent_dict[parent_src]: #si ce voisin est le parent, on récupère le power
+                                power4=neighbour[1]
+                                if power4 > p_min:
+                                    p_min=power4 #si le power est le plus grand, il devient la puissance min nécessaire
+
+                    #list_parents_dest.append(parent_dict[list_parents_dest[-1]])
+                    #list_parents_src.append(parent_dict[list_parents_src[-1]])
+                    parent_src= self.parent_dict[parent_src]
+                    parent_dest=self.parent_dict[parent_dest]
+                #end1=time.perf_counter()
+
+            else:
+                return None 
+        
+
+        #total1= end1-start1
+
+        #print(f" le tps du truc total: {total1}")       
+        print(p_min)     
+        #list_src_rev=list_parents_src[:-1] #on enlève le parent commun aux deux listes
+        #list_src_rev=list_src_rev[::-1] #on inverse la liste pour que le chemin soit cohérent quand on concatène 
+        #path = list_parents_dest+list_src_rev
+        return  p_min 
     
 
     
@@ -285,6 +471,8 @@ def graph_from_file(filename):
         power_min = parameters[2].strip("\n")
         g.add_edge(int(parameters[0]), int(parameters[1]), int(power_min), dist)
     fil.close()
+    g.build_caracteristics()
+    g.mst=g.kruskal()
     return g
 
 
@@ -313,7 +501,7 @@ def estimate_time(argument):
         dest=int(dest)
         start = time.perf_counter()
         try:
-            g.min_power(src, dest)
+            g.min_power_kruskal(src, dest)
         except RecursionError:
             print("the function encountered a Recursion Error")
         end = time.perf_counter()
@@ -328,7 +516,7 @@ def estimate_time(argument):
 
 def compare(argument):
     g= graph_from_file(f"input/network.{argument}.in")
-    time1= estimate_time(argument)
+    time1= estimate_time(argument) #on récupère le temps estimé avec l'ancienne fonction min_power
 
     # we use the same structure as the estimate_time function
 
@@ -359,6 +547,10 @@ def compare(argument):
     # estimating the time necessary to calculate the min power on all of the routes
     estimation_time = mean_time_per_routes * len(g.nodes)
     print(f"La différence de temps estimée est de : {time1-estimation_time} secondes")
+    """
+    test with argument = 2: returns "Temps estimé : 771785.8569999225 secondes
+    La différence de temps estimée est de : 325390.49799961504 secondes" which means that on this network, min_power_kruskal is faster.
+    """
 
 
 def stock_results(argument):
@@ -375,10 +567,10 @@ with on each line a single number corresponding to the minimum power to cover th
         list_line = line.split(' ')
         src = int(list_line[0])
         dest = int(list_line[1])
-        if kruskal.min_power_kruskal(src,dest)==None:
+        if g.min_power_kruskal(src,dest)==None:
             min_power = "None"
         else:
-            min_power = kruskal.min_power_kruskal(src,dest)[-1]
+            min_power = g.min_power_kruskal(src,dest)
         output.write(str(min_power))
         output.write('\n')
     output.close()
