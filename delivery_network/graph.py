@@ -41,6 +41,13 @@ class Graph:
         self.parent_dict=dict([(n, []) for n in nodes])
         self.mst= dict([(n, []) for n in nodes])
         self.list_of_index = []
+        self.list_parent=[]
+        self.list_rank=[]
+        self.components_list=[]
+        self.rank_dict= dict([(n, []) for n in nodes])
+        self.parent_dict=dict([(n, []) for n in nodes])
+        self.mst= dict([(n, []) for n in nodes])
+        self.list_of_index = []
     
 
     def __str__(self):
@@ -135,12 +142,14 @@ class Graph:
         #initialisation
         path=[]
         visited=set()
+        visited=set()
         queue=deque()
         queue.append((depart, [depart]))
         while queue: 
             node, path=queue.popleft()
             neighbour_and_pwr = dict()
             for neighbour in self.graph[node]: 
+                if neighbour[0] not in visited:
                 if neighbour[0] not in visited:
                     neighbour_and_pwr[neighbour[0]] = neighbour[1]
             # initialisation of the list of nodes to be removed
@@ -158,6 +167,7 @@ class Graph:
                     return path + [adjacent_node]
                 else:
                     queue.append((adjacent_node, path + [adjacent_node])) #the node is added to the path 
+                    visited.add(adjacent_node)
                     visited.add(adjacent_node)
        
 
@@ -241,6 +251,10 @@ class Graph:
         mst.list_rank=uf.rank 
         #mst.components_list, mst.rank_dict, mst.parent_dict, _= self.build_caracteristics()
 
+        mst.list_parent=uf.parent
+        mst.list_rank=uf.rank 
+        #mst.components_list, mst.rank_dict, mst.parent_dict, _= self.build_caracteristics()
+
         return mst
     
 
@@ -263,7 +277,131 @@ class Graph:
         components_list=[]
     
         marked_sommet = {sommet:False for sommet in self.nodes}
+        _, p_min = self.get_path_with_kruskal(src, dest)
+        return p_min
+
+
+
+
+    def build_caracteristics(self):
+        components_list=[]
+    
+        marked_sommet = {sommet:False for sommet in self.nodes}
         mst=self.kruskal()
+        rank_dict={node:0 for node in self.nodes}
+        parent_dict={node:0 for node in self.nodes}
+        i=[0] #compteur de profondeur 
+
+        def dfs2(sommet):
+            #implementation of the dfs algorithm:
+            component = [sommet]
+            i[0]+=1 #on indente 
+            for neighbour in mst.graph[sommet]:
+                
+                neighbour, power = neighbour[0], neighbour[1]
+
+                
+                if not marked_sommet[neighbour] :
+                    #print(power)
+                    marked_sommet[neighbour] = True
+                    rank_dict[neighbour]= i[0]
+                    parent_dict[neighbour]=sommet 
+                    component += dfs2(neighbour)
+            i[0]-=1
+            
+            return component
+        
+        
+        for sommet in self.nodes:
+            
+            if not marked_sommet[sommet]:
+                component=dfs2(sommet)
+                component=set(component)
+                components_list.append(component)
+                
+                #components_list.append(dfs2(sommet))
+            
+                
+        #parent_dict[self.nodes[0]]=self.nodes[0]#on redéfinit le parent du premier node comme lui mm (donc le plus vieux ancêtre): décidé arbitrairement
+        self.components_list= components_list
+        self.rank_dict = rank_dict
+        self.parent_dict = parent_dict
+
+        return components_list, rank_dict, parent_dict, mst
+
+
+        """A FAIRE : IL FAUT RECUPERER LE POWER SUR LE TRUC TYPE MST.GRAPH[NODE] ET A CHAQUE NODE VISITE ON PREND LE POWER IMPORTANT 
+        DU COUP SOIT DANS L4ETAPE DU RANK
+        SOIT JE LE RECUPERE PLUS TARD UNE FOIS QUE JAI LE CHEMIN """
+
+    def min_power_kruskal(self, src, dest):
+
+
+        rank_src= self.rank_dict[src]
+        rank_dest= self.rank_dict[dest]
+        list_parents_dest=[dest]
+        list_parents_src=[src]
+
+        #parent_dest=dest
+        #parent_src=src
+        p_min=0
+
+
+        #start1=time.perf_counter()
+        for i in range(0, len(self.components_list)):
+            if src and dest in self.components_list[i]: 
+                
+
+                if rank_src < rank_dest:
+                   
+                    while rank_src < rank_dest:
+                        
+                        list_parents_dest.append(self.parent_dict[list_parents_dest[-1]])#changer dest par le parent 
+                        #parent_dest=self.parent_dict[parent_dest]
+                        rank_dest -=1
+
+                elif rank_src > rank_dest:
+                    while rank_src > rank_dest:
+                        
+                        list_parents_src.append(self.parent_dict[list_parents_src[-1]])    
+                        #parent_src=self.parent_dict[parent_src]        
+                        rank_src -=1
+
+                while list_parents_dest[-1] != list_parents_src[-1]:
+
+                #while parent_src != parent_dest:
+                    
+
+                    list_parents_dest.append(self.parent_dict[list_parents_dest[-1]])
+                    list_parents_src.append(self.parent_dict[list_parents_src[-1]])
+                    #parent_src= self.parent_dict[parent_src]
+                    #parent_dest=self.parent_dict[parent_dest]
+                
+
+            else:
+                return None 
+        #end1=time.perf_counter()
+
+        #total1= end1-start1
+
+        #print(f" le tps du truc 1: {total1}")       
+           
+        list_src_rev=list_parents_src[:-1] #on enlève le parent commun aux deux listes
+        list_src_rev=list_src_rev[::-1] #on inverse la liste pour que le chemin soit cohérent quand on concatène 
+        path = list_parents_dest+list_src_rev
+
+        #start2= time.perf_counter()
+        for index in range(len(path)-1):
+            src, dest = path[index], path[index+1]
+            dest_index= self.list_of_index[src-1].index(dest) #on cherche l'index de la dest dans la liste des voisins de src
+            power= self.mst.graph[src][dest_index][1] #on récupère le power correspondant à cet edge 
+            if power > p_min:
+                p_min=power
+        #end2= time.perf_counter()
+        #print(f"temps du truc grn : {end2-start2}")
+
+        #print(p_min)  
+        return  p_min 
         rank_dict={node:0 for node in self.nodes}
         parent_dict={node:0 for node in self.nodes}
         i=[0] #compteur de profondeur 
@@ -424,6 +562,9 @@ def graph_from_file(filename):
     g.build_caracteristics()
     g.mst=g.kruskal()
     g.list_of_index = [list(zip(*g.mst.graph[node]))[0] if g.mst.graph[node]!=[] else () for node in g.nodes]
+    g.build_caracteristics()
+    g.mst=g.kruskal()
+    g.list_of_index = [list(zip(*g.mst.graph[node]))[0] if g.mst.graph[node]!=[] else () for node in g.nodes]
     return g
 
 
@@ -453,6 +594,7 @@ def estimate_time(argument):
         start = time.perf_counter()
         try:
             g.min_power_kruskal(src, dest)
+            g.min_power_kruskal(src, dest)
         except RecursionError:
             print("the function encountered a Recursion Error")
         end = time.perf_counter()
@@ -467,6 +609,7 @@ def estimate_time(argument):
 
 def compare(argument):
     g= graph_from_file(f"input/network.{argument}.in")
+    time1= estimate_time(argument) #on récupère le temps estimé avec l'ancienne fonction min_power
     time1= estimate_time(argument) #on récupère le temps estimé avec l'ancienne fonction min_power
 
     # we use the same structure as the estimate_time function
@@ -502,6 +645,10 @@ def compare(argument):
     test with argument = 2: returns "Temps estimé : 771785.8569999225 secondes
     La différence de temps estimée est de : 325390.49799961504 secondes" which means that on this network, min_power_kruskal is faster.
     """
+    """
+    test with argument = 2: returns "Temps estimé : 771785.8569999225 secondes
+    La différence de temps estimée est de : 325390.49799961504 secondes" which means that on this network, min_power_kruskal is faster.
+    """
 
 
 def stock_results(argument):
@@ -520,8 +667,13 @@ with on each line a single number corresponding to the minimum power to cover th
         dest = int(list_line[1])
         utilite = list_line[2]
         if g.min_power_kruskal(src,dest)==None:
+        utilite = list_line[2]
+        if g.min_power_kruskal(src,dest)==None:
             min_power = "None"
         else:
+            min_power = g.min_power_kruskal(src,dest)
+        output.write(str(min_power) + " " + str(utilite))
+        #output.write('\n')
             min_power = g.min_power_kruskal(src,dest)
         output.write(str(min_power) + " " + str(utilite))
         #output.write('\n')
