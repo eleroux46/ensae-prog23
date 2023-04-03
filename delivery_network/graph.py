@@ -40,6 +40,7 @@ class Graph:
         self.rank_dict= dict([(n, []) for n in nodes])
         self.parent_dict=dict([(n, []) for n in nodes])
         self.mst= dict([(n, []) for n in nodes])
+        self.list_of_index = []
     
 
     def __str__(self):
@@ -290,8 +291,11 @@ class Graph:
         for sommet in self.nodes:
             
             if not marked_sommet[sommet]:
+                component=dfs2(sommet)
+                component=set(component)
+                components_list.append(component)
                 
-                components_list.append(dfs2(sommet))
+                #components_list.append(dfs2(sommet))
             
                 
         #parent_dict[self.nodes[0]]=self.nodes[0]#on redéfinit le parent du premier node comme lui mm (donc le plus vieux ancêtre): décidé arbitrairement
@@ -309,124 +313,70 @@ class Graph:
     def min_power_kruskal(self, src, dest):
 
 
-        """components_list=[]
-    
-        marked_sommet = {sommet:False for sommet in self.nodes}
-        mst=self.kruskal()
-        rank_dict={node:0 for node in self.nodes}
-        parent_dict={node:0 for node in self.nodes}
-        i=[0] #compteur de profondeur 
-
-        def dfs2(sommet):
-            #implementation of the dfs algorithm:
-            component = [sommet]
-            i[0]+=1 #on indente 
-            for neighbour in mst.graph[sommet]:
-                
-                neighbour, power = neighbour[0], neighbour[1]
-
-                
-                if not marked_sommet[neighbour]:
-                    #print(power)
-                    marked_sommet[neighbour] = True
-                    rank_dict[neighbour]= i[0]
-                    parent_dict[neighbour]=sommet 
-                    component += dfs2(neighbour)
-            i[0]-=1
-            
-            return component
-        
-        start = time.perf_counter()
-        for sommet in self.nodes:
-            
-            if not marked_sommet[sommet]:
-                components=dfs2(sommet)
-                components=set(components) #transformation en set dans l'espoir que ça prenne moins de temps que de parcourir une liste après 
-                
-                components_list.append(components)
-        end =time.perf_counter()
-        total=end-start
-        print(f"tps dfs : {total}")
-
-"""
-
-        #mst=self.kruskal()
-        #components_list, rank_dict, parent_dict, mst= self.build_caracteristics()
-
         rank_src= self.rank_dict[src]
         rank_dest= self.rank_dict[dest]
-        #list_parents_dest=[dest]
-        #list_parents_src=[src]
+        list_parents_dest=[dest]
+        list_parents_src=[src]
 
-        parent_dest=dest
-        parent_src=src
+        #parent_dest=dest
+        #parent_src=src
         p_min=0
 
 
-        
+        #start1=time.perf_counter()
         for i in range(0, len(self.components_list)):
-            if src and dest in self.components_list[i]: #PB DE LISTE ICI ???
-                #start1=time.perf_counter()
+            if src and dest in self.components_list[i]: 
+                
 
                 if rank_src < rank_dest:
-                    #print(self.mst.graph[parent_dest])
+                   
                     while rank_src < rank_dest:
                         
-                        for neighbour in self.mst.graph[parent_dest] : #récupérer les voisins du node dont on cherche le parent
-                            if neighbour[0]==self.parent_dict[parent_dest]: #si ce voisin est le parent, on récupère le power
-                                power1=neighbour[1]
-                                if power1 > p_min:
-                                    p_min=power1 #si le power est le plus grand, il devient la puissance min nécessaire 
-                        #list_parents_dest.append(parent_dict[list_parents_dest[-1]])#changer dest par le parent 
-                        parent_dest=self.parent_dict[parent_dest]
+                        list_parents_dest.append(self.parent_dict[list_parents_dest[-1]])#changer dest par le parent 
+                        #parent_dest=self.parent_dict[parent_dest]
                         rank_dest -=1
 
                 elif rank_src > rank_dest:
                     while rank_src > rank_dest:
                         
-                        for neighbour in self.mst.graph[parent_src] : #récupérer les voisins du node dont on cherche le parent
-                            if neighbour[0]==self.parent_dict[parent_src]: #si ce voisin est le parent, on récupère le power
-                                power2=neighbour[1]
-                                if power2 > p_min:
-                                    p_min=power2 #si le power est le plus grand, il devient la puissance min nécessaire
-                        #list_parents_src.append(parent_dict[list_parents_src[-1]])    
-                        parent_src=self.parent_dict[parent_src]        
+                        list_parents_src.append(self.parent_dict[list_parents_src[-1]])    
+                        #parent_src=self.parent_dict[parent_src]        
                         rank_src -=1
 
-                #while list_parents_dest[-1] != list_parents_src[-1]:
+                while list_parents_dest[-1] != list_parents_src[-1]:
 
-                while parent_src != parent_dest:
+                #while parent_src != parent_dest:
                     
 
-                    for neighbour in self.mst.graph[parent_dest] : #récupérer les voisins du node dont on cherche le parent
-                            if neighbour[0]==self.parent_dict[parent_dest]: #si ce voisin est le parent, on récupère le power
-                                power3=neighbour[1]
-                                if power3 > p_min:
-                                    p_min=power3 #si le power est le plus grand, il devient la puissance min nécessaire
-                    
-                    for neighbour in self.mst.graph[parent_src] : #récupérer les voisins du node dont on cherche le parent
-                            if neighbour[0]==self.parent_dict[parent_src]: #si ce voisin est le parent, on récupère le power
-                                power4=neighbour[1]
-                                if power4 > p_min:
-                                    p_min=power4 #si le power est le plus grand, il devient la puissance min nécessaire
-
-                    #list_parents_dest.append(parent_dict[list_parents_dest[-1]])
-                    #list_parents_src.append(parent_dict[list_parents_src[-1]])
-                    parent_src= self.parent_dict[parent_src]
-                    parent_dest=self.parent_dict[parent_dest]
-                #end1=time.perf_counter()
+                    list_parents_dest.append(self.parent_dict[list_parents_dest[-1]])
+                    list_parents_src.append(self.parent_dict[list_parents_src[-1]])
+                    #parent_src= self.parent_dict[parent_src]
+                    #parent_dest=self.parent_dict[parent_dest]
+                
 
             else:
                 return None 
-        
+        #end1=time.perf_counter()
 
         #total1= end1-start1
 
-        #print(f" le tps du truc total: {total1}")       
-        print(p_min)     
-        #list_src_rev=list_parents_src[:-1] #on enlève le parent commun aux deux listes
-        #list_src_rev=list_src_rev[::-1] #on inverse la liste pour que le chemin soit cohérent quand on concatène 
-        #path = list_parents_dest+list_src_rev
+        #print(f" le tps du truc 1: {total1}")       
+           
+        list_src_rev=list_parents_src[:-1] #on enlève le parent commun aux deux listes
+        list_src_rev=list_src_rev[::-1] #on inverse la liste pour que le chemin soit cohérent quand on concatène 
+        path = list_parents_dest+list_src_rev
+
+        #start2= time.perf_counter()
+        for index in range(len(path)-1):
+            src, dest = path[index], path[index+1]
+            dest_index= self.list_of_index[src-1].index(dest) #on cherche l'index de la dest dans la liste des voisins de src
+            power= self.mst.graph[src][dest_index][1] #on récupère le power correspondant à cet edge 
+            if power > p_min:
+                p_min=power
+        #end2= time.perf_counter()
+        #print(f"temps du truc grn : {end2-start2}")
+
+        #print(p_min)  
         return  p_min 
     
 
@@ -473,6 +423,7 @@ def graph_from_file(filename):
     fil.close()
     g.build_caracteristics()
     g.mst=g.kruskal()
+    g.list_of_index = [list(zip(*g.mst.graph[node]))[0] if g.mst.graph[node]!=[] else () for node in g.nodes]
     return g
 
 
@@ -567,12 +518,13 @@ with on each line a single number corresponding to the minimum power to cover th
         list_line = line.split(' ')
         src = int(list_line[0])
         dest = int(list_line[1])
+        utilite = list_line[2]
         if g.min_power_kruskal(src,dest)==None:
             min_power = "None"
         else:
             min_power = g.min_power_kruskal(src,dest)
-        output.write(str(min_power))
-        output.write('\n')
+        output.write(str(min_power) + " " + str(utilite))
+        #output.write('\n')
     output.close()
 
 
@@ -609,3 +561,151 @@ class UnionFind:
         else:
             self.parent[src_root]=dest_root
             self.rank[src_root]+=1
+
+
+
+
+"""passage à l'algorithme d'optimisation avec les camions"""
+
+
+  
+class Catalogue:
+    def __init__(self, trucks=[]):
+        self.trucks = trucks
+        self.catalogue = dict([(n, []) for n in trucks])
+        self.nb_trucks = len(trucks)
+
+    def __str__(self):
+        if not self.catalogue:
+            output = "The catalogue is empty"            
+        else:
+            output = f"The catalogue has {self.nb_trucks} trucks \n"
+            for source, destination in self.catalogue.items():
+                output += f"{source}-->{destination}\n"
+        return output   
+    
+    def add_caracteristics(self, truck, power, cost):
+        if truck not in self.trucks:
+            self.trucks[truck] = []
+            self.nb_trucks += 1
+            self.trucks.append(truck)
+        self.catalogue[truck].append((power, cost))
+    
+    
+def catalogue_from_file(filename):
+    f= open(f"input/trucks.{filename}.in")
+    content = f.readlines()
+    nb_trucks = int(content[0])
+    g = Catalogue([truck for truck in range(1,int(nb_trucks)+1)])
+    g.nb_trucks=nb_trucks
+    g.trucks=range(1,g.nb_trucks + 1)
+    for line in range(1, int(nb_trucks)+1):
+        parameters = (content[line]).split(" ")
+        truck_power = parameters[0]
+        truck_cost = parameters[1].strip("\n")
+        g.add_caracteristics(line,truck_power, truck_cost)
+    return g
+    
+
+def glouton_algorithm(num_graph,num_catalogue):
+    """creation = stock_results(num_graph)
+    file = open(f'routes.{num_graph}.out', 'r')
+    content = file.readlines()
+    """
+    
+    
+    """
+    Cette fonction construit un dictionnaire avec en clé : trajet (1,...nb_trajets) et des valeurs
+    (camion choisit, son cout, utilité du trajet)"""
+    with open(f'input/routes.{num_graph}.in', 'r') as filein, \
+         open(f'output/routes.{num_graph}.out', 'r') as fileout:
+             nb_routes = filein.readline()
+             content_in = filein.readlines()
+             content_out = fileout.readlines()
+    catal = catalogue_from_file(num_catalogue)
+    trajet_and_truck = dict()
+    for index,content in enumerate(content_out):
+        index+=1
+        trajet_power = content.strip("\n")
+       #print(trajet_power)
+        if trajet_power == "None": 
+            continue
+        else : 
+            opti_cost=float('inf')
+            for truck in catal.trucks:
+                for power, cost in catal.catalogue[truck]:
+                    if float(trajet_power) <= float(power) and float(cost)<opti_cost:
+                        #print(f"on est dans le cas où {trajet_power}<{power} et {cost}<{opti_cost}")
+                        trajet_and_truck[index]=[truck,cost]
+                        opti_cost= float(cost)
+   #On récupère les utilités
+   #Ma méthode : 
+    """for index,line in enumerate(content_in):
+        index+=1
+        parameters =line.split(" ")
+        utility = parameters[2].strip()
+        try : 
+            trajet_and_truck[index].append(utility)
+        except KeyError : #si dans les trajets de base y'avait None : pas possible
+            pass
+    """
+    trajet_utility = {}
+    for index, line in enumerate(content_in):
+        parameters = line.split()
+        utility = parameters[2]
+        if index + 1 in trajet_and_truck:
+            trajet_utility[index + 1] = utility
+    
+    for index, values in trajet_and_truck.items():
+        trajet_and_truck[index].append(trajet_utility.get(index, 0))
+    
+    return trajet_and_truck, nb_routes
+
+
+def backpack_algorithm(num_graph,num_catalogue):
+    trajet_and_truck, nb_routes = glouton_algorithm(num_graph,num_catalogue)
+    #Trajet_and_utility = dict()
+    for key,values in trajet_and_truck.items():
+        #Trajet_and_utility[key]= (float(values[-1])/float(values[1]))
+        trajet_and_truck[key].append(float(values[-1])/float(values[1]))
+    #On sort les efficacité par ordre décroissant
+    dict_sorted = dict(sorted(trajet_and_truck.items(), key=lambda x: x[-1], reverse=True))
+    #On initialise
+    Cost_cumul = 0
+    #On initialise la collection des camions à acheter
+    Trucks_to_buy = dict()
+    Journey_cover = dict()
+    total_utility = 0
+    #on itère sur nb_routes et pas sur len(dict_sorted) car dans le dict sorted les routes inexistantes ont été suppr
+    for i in dict_sorted:
+        try : 
+            if float(dict_sorted[i][1]) + Cost_cumul <= 25*(10**9) :
+                Cost_cumul +=  int(dict_sorted[i][1])  
+                Journey_cover[i]= [1,dict_sorted[i][0]]#on construit une liste avec : tel trajet : si il est cover : et si oui par qui
+                total_utility += int(dict_sorted[i][2])
+                if dict_sorted[i][0] not in Trucks_to_buy.keys():
+                    Trucks_to_buy[dict_sorted[i][0]] = 1
+                else:
+                    Trucks_to_buy[dict_sorted[i][0]]+=1
+        except KeyError : 
+            pass #le trajet i n'existe pas, n'est pas possible
+
+    return "liste des camions à acheter :", Trucks_to_buy,"liste des trajets à couvrir avec tel camion :", Journey_cover, "utilité totale :", total_utility
+
+                               
+    
+#print(catalogue_from_file(1))
+#print(backpack_algorithm(1,1))
+
+"""
+La complexité temporelle de votre fonction backpack_algorithm() dépend principalement de la complexité temporelle de la fonction glouton_algorithm(). La complexité de cette fonction est en $O(NM)$ où $N$ est le nombre de trajets et $M$ est le nombre de camions. C'est en effet la boucle for truck in catal.trucks: qui est la plus coûteuse et qui est exécutée pour chaque trajet, avec une complexité de $O(M)$.
+
+En ce qui concerne la fonction backpack_algorithm(), la partie la plus coûteuse est le tri des trajets par ordre décroissant d'efficacité. Cette opération de tri a une complexité de $O(N\log N)$, où $N$ est le nombre de trajets.
+
+La complexité de la boucle principale dépend de la distribution des coûts des trajets. Si les coûts sont uniformément distribués, la boucle principale aura une complexité en $O(N)$. Dans le pire des cas, où tous les trajets ont le même coût, la boucle principale aura une complexité en $O(NM)$.
+
+Pour améliorer les performances de votre code, vous pourriez envisager d'utiliser une autre méthode pour trier les trajets. Par exemple, vous pourriez utiliser un algorithme de tri linéaire tel que le tri pigeonhole si les coûts des trajets sont des nombres entiers dans un intervalle donné. Cela réduirait la complexité temporelle de l'étape de tri de $O(N\log N)$ à $O(N)$.
+
+Par ailleurs, vous pourriez optimiser la boucle principale en évitant de trier tous les trajets si vous n'avez besoin que des $k$ trajets les plus efficaces. Dans ce cas, vous pouvez utiliser un algorithme de sélection linéaire tel que la sélection par partition, qui a une complexité en $O(N)$ pour trouver les $k$ éléments les plus efficaces.
+
+Enfin, il est possible que le coût de votre fonction dépende également de la complexité temporelle de la fonction catalogue_from_file(). Vous pourriez envisager d'optimiser cette fonction en évitant d'allouer de nouveaux objets list pour chaque camion si vous connaissez à l'avance le nombre total de camions."""
