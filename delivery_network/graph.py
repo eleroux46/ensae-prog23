@@ -1,5 +1,7 @@
 import random
 import time
+import math
+import random 
 from collections import deque
 class Graph:
     """
@@ -624,53 +626,46 @@ def glouton_algorithm(num_graph,num_catalogue):
     """
     Cette fonction construit un dictionnaire avec en clé : trajet (1,...nb_trajets) et des valeurs
     (camion choisit, son cout, utilité du trajet)"""
-    with open(f'input/routes.{num_graph}.in', 'r') as filein, \
-         open(f'output/routes.{num_graph}.out', 'r') as fileout:
-             nb_routes = filein.readline()
-             content_in = filein.readlines()
+    with open(f'output/routes.{num_graph}.out', 'r') as fileout:
+             #nb_routes = filein.readline() #QUESTION ICI: CHANGER LE FORMAT DE STOCK RESULTS PR PVOIR GARDER CETTE INFO??
+             #content_in = filein.readlines()
              content_out = fileout.readlines()
     catal = catalogue_from_file(num_catalogue)
     trajet_and_truck = dict()
-    for index,content in enumerate(content_out):
-        index+=1
-        trajet_power = content.strip("\n")
+    #print(content_out)
+    for index,line in enumerate(content_out, start=1 ):
+        parameters=line.split()
+        #print(f"les param{parameters}")
+        utility= int(parameters[-1].strip("\n"))
+        trajet_power = float(parameters[0])
        #print(trajet_power)
         if trajet_power == "None": 
             continue
-        else : 
-            opti_cost=float('inf')
-            for truck in catal.trucks:
-                for power, cost in catal.catalogue[truck]:
-                    if float(trajet_power) <= float(power) and float(cost)<opti_cost:
-                        #print(f"on est dans le cas où {trajet_power}<{power} et {cost}<{opti_cost}")
-                        trajet_and_truck[index]=[truck,cost]
-                        opti_cost= float(cost)
-   #On récupère les utilités
-   #Ma méthode : 
-    """for index,line in enumerate(content_in):
-        index+=1
-        parameters =line.split(" ")
-        utility = parameters[2].strip()
-        try : 
-            trajet_and_truck[index].append(utility)
-        except KeyError : #si dans les trajets de base y'avait None : pas possible
-            pass
-    """
-    trajet_utility = {}
-    for index, line in enumerate(content_in):
-        parameters = line.split()
-        utility = parameters[2]
-        if index + 1 in trajet_and_truck:
-            trajet_utility[index + 1] = utility
-    
-    for index, values in trajet_and_truck.items():
-        trajet_and_truck[index].append(trajet_utility.get(index, 0))
-    
-    return trajet_and_truck, nb_routes
+        opti_cost=float('inf')
+        optimal_truck=None
+        left=0
+        right=len(catal.trucks)-1
+        while left <= right:
+            mid=(left + right)//2
+            #print(f"mid:{mid}")
+            truck= catal.trucks[mid]
+            for power, cost in catal.catalogue[truck]:
+                if trajet_power<=float(power) and float(cost)<opti_cost:
+                    opti_cost=int(cost)
+                    optimal_truck=truck
+                    #print(f"opti cost {opti_cost} and optimal truck {optimal_truck}")
+                if float(power)>= trajet_power:#GROSSE QUESTION ICI AUSSI CF VOCAUX 22H40
+                    right=mid-1
+                else:
+                    left=mid+1      
+        trajet_and_truck[index]=[optimal_truck, opti_cost, utility]
+
+    return trajet_and_truck #nb_routes
 
 
 def backpack_algorithm(num_graph,num_catalogue):
-    trajet_and_truck, nb_routes = glouton_algorithm(num_graph,num_catalogue)
+    trajet_and_truck = glouton_algorithm(num_graph,num_catalogue)
+    """, nb_routes"""
     #Trajet_and_utility = dict()
     for key,values in trajet_and_truck.items():
         #Trajet_and_utility[key]= (float(values[-1])/float(values[1]))
@@ -697,7 +692,7 @@ def backpack_algorithm(num_graph,num_catalogue):
         except KeyError : 
             pass #le trajet i n'existe pas, n'est pas possible
 
-    return "liste des camions à acheter :", Trucks_to_buy,"liste des trajets à couvrir avec tel camion :", Journey_cover, "utilité totale :", total_utility
+    return "liste des camions à acheter :", Trucks_to_buy,"liste des trajets à couvrir avec tel camion :", Journey_cover, f"utilité totale :{total_utility}" , f"coût total: {Cost_cumul}"
 
                                
     

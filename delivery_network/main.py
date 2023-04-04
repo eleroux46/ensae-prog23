@@ -1,4 +1,4 @@
-from graph import Graph, graph_from_file, UnionFind, compare, estimate_time, stock_results, Catalogue, catalogue_from_file, backpack_algorithm
+from graph import Graph, graph_from_file, UnionFind, compare, estimate_time, stock_results, Catalogue, catalogue_from_file, backpack_algorithm, glouton_algorithm
 
 
 data_path = "input/"
@@ -21,5 +21,5 @@ h.graph[1]
 #print(val[0])
 
 #print(catalogue_from_file(1))
-#print(backpack_algorithm(1,1))
-
+#print(glouton_algorithm(2,2))
+print(backpack_algorithm(5,2))
