@@ -746,11 +746,8 @@ def Simulated_annealing_random(num_graph, num_catalogue, nb_iter=1000, T=1000, a
 
 
 def Simulated_annealing_glouton(num_graph, num_catalogue, nb_iter=1000, T=1000, alpha=0.95):
-    with open(f'output/routes.{num_graph}.out', 'r') as fileout:
-        nb_routes = int(fileout.readline())
-        content_out = fileout.readlines()
+
     # Initialisation de type 1 :
-    catal = catalogue_from_file(num_catalogue)
     result = glouton_algorithm(num_graph,num_catalogue)
     nb_trucks = result[-1]
     routes = result[1]
