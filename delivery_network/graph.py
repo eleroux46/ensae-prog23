@@ -186,8 +186,8 @@ class Graph:
         """
         this function takes a node of origin and a node of destination as parameters and returns the minimal power necessary for the path.
         If there is no such path, min_power returns None.
-        This function uses the function get_path_with_power() which has a complexity O(V+E) and a binary search algorithm which has a complexity of O(ln(high)).
-        So the total complexity of the function is O((V+E)*ln(high)).
+        This function uses the function get_path_with_power() which has a complexity O(V+E) and a binary search algorithm which has a complexity of O(ln(max_power)).
+        So the total complexity of the function is O((V+E)*ln(max_power)).
         """
         path = self.get_path_with_power(src, dest, float('inf'))
         if path is None:
@@ -200,8 +200,8 @@ class Graph:
 
         #else, we implement a binary search on the interval [0, max_power]
         low = 1
-        high = max(edge[1] for node_edges in self.graph.values() for edge in node_edges)
-        high = int(high)
+        max_power = max(edge[1] for node_edges in self.graph.values() for edge in node_edges)
+        high = int(max_power)
         while low < high:
             mid = (low + high) // 2
             path = self.get_path_with_power(src, dest, mid)
@@ -294,7 +294,6 @@ class Graph:
         self.rank_dict = rank_dict
         self.parent_dict = parent_dict
 
-        #return components_list, rank_dict, parent_dict
 
 
     def min_power_kruskal(self, src, dest):
@@ -614,20 +613,21 @@ def catalogue_from_file(filename):
 
 def journey_and_cost_algorithm(num_graph, num_catalogue):
     """
-    Cette fonction construit un dictionnaire avec en clé : trajet (1,...nb_trajets) et des valeurs
-    (camion choisit, son cout, utilité du trajet)"""
+    This function takes two int as arguments: one for the network, the other one for the file of trucks.
+    It returns a dictionnary with:
+        - keys: the journey (1,...nb_trajets)
+        - values: [truck chosen, its cost, utility]
+    Its complexity is O(nb_routes*ln(nb_trucks)) because it is based on a binary search. It needs to explore a sorted list of trucks (ln(nb_trucks)) for each route (nb_routes)
+    """
     with open(f'output/routes.{num_graph}.out', 'r') as fileout:
         nb_routes = int(fileout.readline())
         content_out = fileout.readlines()
     catal = catalogue_from_file(num_catalogue)
     journey_parameters = dict()
-    #nb_routes = 0
     for index, line in enumerate(content_out):
-        #nb_routes +=1
         parameters = line.split()
         utility = int(parameters[-1].strip("\n"))
         trajet_power = float(parameters[0])
-       # print(trajet_power)
         if trajet_power == "None":
             continue
         opti_cost = float('inf')
@@ -653,21 +653,17 @@ def journey_and_cost_algorithm(num_graph, num_catalogue):
 
 def glouton_algorithm(num_graph, num_catalogue):
     journey_parameters, nb_routes, nb_trucks = journey_and_cost_algorithm(num_graph, num_catalogue)
-    #Trajet_and_utility = dict()
     for key, values in journey_parameters.items():
-        #Trajet_and_utility[key]= (float(values[-1])/float(values[1]))
         journey_parameters[key].append(float(values[-1])/float(values[1]))
-    # On sort les efficacité par ordre décroissant
+    # sorting the efficacities in descending order
     dict_sorted = dict(sorted(journey_parameters.items(),
                        key=lambda x: x[-1], reverse=True))
-    # On initialise
+    # initilisations
     Cost_cumul = 0
-    # On initialise la collection des camions à acheter
     Trucks_to_buy = dict()
     routes_and_trucks = dict()
     total_utility = 0
     print(dict_sorted)
-    # on itère sur nb_routes et pas sur len(dict_sorted) car dans le dict sorted les routes inexistantes ont été suppr
     for i in dict_sorted:
         try:
             if float(dict_sorted[i][1]) + Cost_cumul <= 25*(10**9):
@@ -682,8 +678,7 @@ def glouton_algorithm(num_graph, num_catalogue):
             else:
                 routes_and_trucks[i] = [0, dict_sorted[i][1], dict_sorted[i][2], dict_sorted[i][3]]
         except KeyError:
-            pass  # le trajet i n'existe pas, n'est pas possible
-            #solution.routes[index+1] = [opti_truck, opti_cost, utility]
+            pass  
     return Trucks_to_buy, routes_and_trucks,total_utility ,Cost_cumul, nb_trucks 
 
 
@@ -700,7 +695,7 @@ class Solution:
 
 def Simulated_annealing_random(num_graph, num_catalogue, nb_iter=1000, T=1000, alpha=0.95):
 
-    #Initialisation de type random:
+    #random initialisation
     with open(f'routes.{num_graph}.out', 'r') as fileout:
         nb_routes = int(fileout.readline())
     result = journey_and_cost_algorithm(num_graph,num_catalogue)
@@ -725,17 +720,14 @@ def Simulated_annealing_random(num_graph, num_catalogue, nb_iter=1000, T=1000, a
                 new_solution.routes[change1][0] = 1
             if new_solution.routes[change2][0]== 1 :
                 new_solution.routes[change2][0] = 0
-        #print("voici change1 :", change1, new_solution.routes[change1][0]," voici change2 :" ,change2, new_solution.routes[change2][0])
-        #print(new_solution)
+       
         # Calculer le coût et la profitabilité de la nouvelle solution
         new_solution.cost = 0
         new_solution.utility = 0
         for k in new_solution.routes:
-            #print(f"boucle numéro {k} on a un {new_solution.routes[k][0]}")
-            #print(f"{k} : {new_solution.routes[k][0]} ----")
+           
             if new_solution.routes[k][0] == 1 and float(new_solution.routes[k][2]) + new_solution.cost <= 25*(10**9): 
                 new_solution.cost += new_solution.routes[k][2]
-               #     print("nouveau new_solution.cost", new_solution.cost)
                 new_solution.utility += new_solution.routes[k][-1]
                 
         # Accepter ou rejeter la nouvelle solution selon la probabilité de Metropolis
@@ -764,7 +756,6 @@ def Simulated_annealing_glouton(num_graph, num_catalogue, nb_iter=1000, T=1000, 
     result = glouton_algorithm(num_graph,num_catalogue)
     nb_trucks = result[-1]
     routes = result[1]
-    print("ON EST LA")
     routes_sorted = dict(sorted(routes.items(),key=lambda x: x[-1], reverse=True))
     solution = Solution(trucks=list(range(1, nb_trucks +1)), routes = routes_sorted)
     utility = result[2]
@@ -772,7 +763,6 @@ def Simulated_annealing_glouton(num_graph, num_catalogue, nb_iter=1000, T=1000, 
     solution.utility = utility
     solution.cost = cost
     
-    #print(solution)
     best_solution = solution
     for i in range(nb_iter):
         print(i)
@@ -784,17 +774,14 @@ def Simulated_annealing_glouton(num_graph, num_catalogue, nb_iter=1000, T=1000, 
                 new_solution.routes[change1][0] = 1
             if new_solution.routes[change2][0]== 1 :
                 new_solution.routes[change2][0] = 0
-        #print("voici change1 :", change1," voici change2 :" ,change2)
-        #print(new_solution)
+
         # Calculer le coût et la profitabilité de la nouvelle solution
         new_solution.cost = 0
         new_solution.utility = 0
         for k in new_solution.routes:
-            #print(f"boucle numéro {k} on a un {new_solution.routes[k][0]}")
-            #print(f"{k} : {new_solution.routes[k][0]} ----")
+        
             if new_solution.routes[k][0] == 1 and float(new_solution.routes[k][2]) + new_solution.cost <= 55*(10**5): 
                 new_solution.cost += new_solution.routes[k][2]
-               #     print("nouveau new_solution.cost", new_solution.cost)
                 new_solution.utility += new_solution.routes[k][-1]
                 
         # Accepter ou rejeter la nouvelle solution selon la probabilité de Metropolis
