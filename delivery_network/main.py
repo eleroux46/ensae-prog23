@@ -1,4 +1,4 @@
-from graph import Graph, graph_from_file, UnionFind, compare, estimate_time, stock_results, Catalogue, catalogue_from_file, backpack_algorithm, glouton_algorithm
+from graph import Graph, graph_from_file, UnionFind, compare, estimate_time, stock_results, Catalogue, catalogue_from_file, glouton_algorithm, estimate_time_kruskal
 
 
 data_path = "input/"
@@ -9,8 +9,8 @@ h=g.kruskal()
 print(h)
 h.graph[1]
 #compare(2)
-#estimate_time(5)
-#stock_results(10)
+#estimate_time_kruskal(2)
+stock_results(10)
 #print(g.build_caracteristics())
 #print(h.list_rank, h.list_parent)
 #print(g.connected_components())
@@ -21,5 +21,5 @@ h.graph[1]
 #print(val[0])
 
 #print(catalogue_from_file(1))
-#print(glouton_algorithm(2,2))
-print(backpack_algorithm(5,2))
+#glouton_algorithm(2,2)
+#print(backpack_algorithm(5,2))

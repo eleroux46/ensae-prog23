@@ -36,15 +36,8 @@ class Graph:
         self.graph = dict([(n, []) for n in nodes])
         self.nb_nodes = len(nodes)
         self.nb_edges = 0
-        self.list_parent=[]
-        self.list_rank=[]
-        self.components_list=[]
-        self.rank_dict= dict([(n, []) for n in nodes])
-        self.parent_dict=dict([(n, []) for n in nodes])
-        self.mst= dict([(n, []) for n in nodes])
-        self.list_of_index = []
-        self.list_parent=[]
-        self.list_rank=[]
+        #self.list_parent=[]
+        #self.list_rank=[]
         self.components_list=[]
         self.rank_dict= dict([(n, []) for n in nodes])
         self.parent_dict=dict([(n, []) for n in nodes])
@@ -246,12 +239,8 @@ class Graph:
             if src_set != dest_set: #if the nodes are not already connected, the edge is added to the mst
                 mst.add_edge(src, dest, power)
                 uf.union(src_set, dest_set)
-        mst.list_parent=uf.parent
-        mst.list_rank=uf.rank 
-        #mst.components_list, mst.rank_dict, mst.parent_dict, _= self.build_caracteristics()
-
-        mst.list_parent=uf.parent
-        mst.list_rank=uf.rank 
+        #mst.list_parent=uf.parent
+        #mst.list_rank=uf.rank 
         #mst.components_list, mst.rank_dict, mst.parent_dict, _= self.build_caracteristics()
 
         return mst
@@ -259,38 +248,33 @@ class Graph:
 
 
 
-    def min_power_kruskal0(self, src, dest):
-        """
-        the function takes a node of origin and a node of destination as parameters.
-        it returns the min_power of the minimum spanning tree corresponding to the graph (using the kruskal function).
-        The complexity of the min_power_kruskal function is O(Eln(E)+Eln(V) + (V+E)*ln(high)) (where high is the power_max) because it uses the functions krukal and min_power.
-        But 
-        """
-        _, p_min = self.get_path_with_kruskal(src, dest)
-        return p_min
-
-
-
     def build_caracteristics(self):
+        """
+        The function build_caracteristics is applied to a graph and defines :
+            -self.components_list: a list of the sets of the connected components of the mst graph
+            -self.rank_dict: a dictionnary of the ranks of the nodes (format: {node:rank})
+            -self.parent_dict: a dictionnary of the parents of the nodes (format: {node:parent})
+
+        Its complexity is the one of the dfs2 : O(V+E') (V is the number of nodes and E' is the number of edges in the mst)
+        and it is added to the complexity of the kruskal function which is used to form the mst.
+        """
+        #initialisations
         components_list=[]
-    
         marked_sommet = {sommet:False for sommet in self.nodes}
         mst=self.kruskal()
         rank_dict={node:0 for node in self.nodes}
         parent_dict={node:0 for node in self.nodes}
-        i=[0] #compteur de profondeur 
+        i=[0]
 
         def dfs2(sommet):
             #implementation of the dfs algorithm:
             component = [sommet]
-            i[0]+=1 #on indente 
-            for neighbour in mst.graph[sommet]:
-                
-                neighbour, power = neighbour[0], neighbour[1]
+            i[0]+=1 #i is used to measure the rank of the nodes
 
-                
-                if not marked_sommet[neighbour] :
-                    #print(power)
+            for neighbour in mst.graph[sommet]:
+                neighbour= neighbour[0]
+
+                if not marked_sommet[neighbour] : #if the neighbour has not already been visited
                     marked_sommet[neighbour] = True
                     rank_dict[neighbour]= i[0]
                     parent_dict[neighbour]=sommet 
@@ -304,87 +288,71 @@ class Graph:
             
             if not marked_sommet[sommet]:
                 component=dfs2(sommet)
-                component=set(component)
+                component=set(component) #the list becomes a set in order to reduce the time complexity of the min_power_kruskal 
                 components_list.append(component)
-                
-                #components_list.append(dfs2(sommet))
-            
-                
-        #parent_dict[self.nodes[0]]=self.nodes[0]#on redéfinit le parent du premier node comme lui mm (donc le plus vieux ancêtre): décidé arbitrairement
+                            
+        #the elements are assigned the the elements of the class graph                   
         self.components_list= components_list
         self.rank_dict = rank_dict
         self.parent_dict = parent_dict
 
-        return components_list, rank_dict, parent_dict, mst
+        #return components_list, rank_dict, parent_dict
 
 
     def min_power_kruskal(self, src, dest):
-
+        """
+        the function takes a node of origin and a node of destination as parameters.
+        it returns the p_min (which is the power minimal necessary to go from src to dest).
+        
+        Its complexity is : 
+        """
 
         rank_src= self.rank_dict[src]
         rank_dest= self.rank_dict[dest]
         list_parents_dest=[dest]
         list_parents_src=[src]
-
-        #parent_dest=dest
-        #parent_src=src
         p_min=0
 
 
-        #start1=time.perf_counter()
         for i in range(0, len(self.components_list)):
-            if src and dest in self.components_list[i]: 
+            if src and dest in self.components_list[i]: #checking to see if src and dest are connected
                 
-
+                #first we equalize the ranks 
                 if rank_src < rank_dest:
-                   
                     while rank_src < rank_dest:
-                        
-                        list_parents_dest.append(self.parent_dict[list_parents_dest[-1]])#changer dest par le parent 
-                        #parent_dest=self.parent_dict[parent_dest]
+                        #the list of parents of dest is updated until rank_dest is equal to rank_src 
+                        list_parents_dest.append(self.parent_dict[list_parents_dest[-1]])
                         rank_dest -=1
 
                 elif rank_src > rank_dest:
                     while rank_src > rank_dest:
                         
-                        list_parents_src.append(self.parent_dict[list_parents_src[-1]])    
-                        #parent_src=self.parent_dict[parent_src]        
+                        list_parents_src.append(self.parent_dict[list_parents_src[-1]])           
                         rank_src -=1
 
                 while list_parents_dest[-1] != list_parents_src[-1]:
-
-                #while parent_src != parent_dest:
-                    
+                #loop until we find the lowest common ancestor                     
 
                     list_parents_dest.append(self.parent_dict[list_parents_dest[-1]])
                     list_parents_src.append(self.parent_dict[list_parents_src[-1]])
-                    #parent_src= self.parent_dict[parent_src]
-                    #parent_dest=self.parent_dict[parent_dest]
                 
 
             else:
                 return None 
-        #end1=time.perf_counter()
-
-        #total1= end1-start1
-
-        #print(f" le tps du truc 1: {total1}")       
-           
-        list_src_rev=list_parents_src[:-1] #on enlève le parent commun aux deux listes
-        list_src_rev=list_src_rev[::-1] #on inverse la liste pour que le chemin soit cohérent quand on concatène 
+   
+        #building of the complete path between src and dest 
+        list_src_rev=list_parents_src[:-1] 
+        list_src_rev=list_src_rev[::-1] 
         path = list_parents_dest+list_src_rev
 
-        #start2= time.perf_counter()
+        #searching the min_power necessary to travel this path
         for index in range(len(path)-1):
             src, dest = path[index], path[index+1]
-            dest_index= self.list_of_index[src-1].index(dest) #on cherche l'index de la dest dans la liste des voisins de src
-            power= self.mst.graph[src][dest_index][1] #on récupère le power correspondant à cet edge 
+            dest_index= self.list_of_index[src-1].index(dest) 
+            power= self.mst.graph[src][dest_index][1] #this is the power corresponding to the edge between the two nodes 
             if power > p_min:
-                p_min=power
-        #end2= time.perf_counter()
-        #print(f"temps du truc grn : {end2-start2}")
+                p_min=power #updating the p_min 
 
-        #print(p_min)  
         return  p_min 
       
     
@@ -445,9 +413,14 @@ def estimate_time(argument):
     total_time = 0
     # we want to test on 10 random routes
     nb_routes = 10
+    nb_trajets =0
+    for line in h:
+        nb_trajets+=1
+    h.close()
+    h=open(f"input/routes.{argument}.in", "r")
     lignes=[]
     for i in range(nb_routes): 
-        lignes.append(random.randint(1,nb_routes-1)) #we randomly choose 10 lines to find the corresponding routes
+        lignes.append(random.randint(1,nb_trajets-1)) #we randomly choose 10 lines to find the corresponding routes
     lignes.append(0)
     #the 10 routes are sorted
     lignes.sort()
@@ -459,7 +432,7 @@ def estimate_time(argument):
         dest=int(dest)
         start = time.perf_counter()
         try:
-            g.min_power_kruskal(src, dest)
+            g.min_power(src, dest) 
         except RecursionError:
             print("the function encountered a Recursion Error")
         end = time.perf_counter()
@@ -468,24 +441,31 @@ def estimate_time(argument):
     mean_time_per_routes = total_time / nb_routes
 
     # estimating the time necessary to calculate the min power on all of the routes
-    estimation_time = mean_time_per_routes * len(g.nodes)
+    #estimation_time = mean_time_per_routes * len(g.nodes)
+    estimation_time = mean_time_per_routes*nb_trajets
     print(f"Temps estimé : {estimation_time} secondes")
     return estimation_time
 
-def compare(argument):
-    g= graph_from_file(f"input/network.{argument}.in")
-    time1= estimate_time(argument) #on récupère le temps estimé avec l'ancienne fonction min_power
 
-    # we use the same structure as the estimate_time function
-
+def estimate_time_kruskal(argument):
+    """
+    the function estimate_time takes the number of a network as argument
+    and returns the mean time necessary to apply the min_power_kruskal function in this network.
+    """
+    g = graph_from_file(f"input/network.{argument}.in")
     h= open(f"input/routes.{argument}.in", "r") #we open the file "routes" corresponding 
     # initialisation of the time 
     total_time = 0
     # we want to test on 10 random routes
     nb_routes = 10
+    nb_trajets =0
+    for line in h:
+        nb_trajets+=1
+    h.close()
+    h=open(f"input/routes.{argument}.in", "r")
     lignes=[]
     for i in range(nb_routes): 
-        lignes.append(random.randint(1,nb_routes-1)) #we randomly choose 10 lines to find the corresponding routes
+        lignes.append(random.randint(1,nb_trajets-1)) #we randomly choose 10 lines to find the corresponding routes
     lignes.append(0)
     #the 10 routes are sorted
     lignes.sort()
@@ -496,19 +476,37 @@ def compare(argument):
         src=int(src)
         dest=int(dest)
         start = time.perf_counter()
-        g.min_power_kruskal(src, dest)
+        try:
+            g.min_power_kruskal(src, dest) 
+        except RecursionError:
+            print("the function encountered a Recursion Error")
         end = time.perf_counter()
         total_time += end - start
     #calcul of the mean time per route:
     mean_time_per_routes = total_time / nb_routes
 
     # estimating the time necessary to calculate the min power on all of the routes
-    estimation_time = mean_time_per_routes * len(g.nodes)
-    print(f"La différence de temps estimée est de : {time1-estimation_time} secondes")
+    #estimation_time = mean_time_per_routes * len(g.nodes)
+    estimation_time = mean_time_per_routes*nb_trajets
+    print(f"Temps estimé : {estimation_time} secondes")
+    return estimation_time
+
+
+
+def compare(argument):
     """
-    test with argument = 2: returns "Temps estimé : 771785.8569999225 secondes
-    La différence de temps estimée est de : 325390.49799961504 secondes" which means that on this network, min_power_kruskal is faster.
-    A COMPLETER PCQ MTN 50SEC SUR LE 5
+    this function takes the number of a network as argument 
+    and returns the difference of the estimate time necessary to find the minimal power on this network with the function min_power and the function min_power_kruskal
+    """
+    time1= estimate_time(argument) 
+    time2= estimate_time_kruskal(argument)
+
+    print(f"La différence de temps estimée est de : {time1-time2} secondes")
+    """
+    test with argument = 2: 
+    Temps estimé : 862529.8500002827 secondes
+    Temps estimé : 6.288003642112017 secondes
+    La différence de temps estimée est de : 862523.5619966406 secondes
     """
 
 
@@ -516,24 +514,25 @@ def compare(argument):
 def stock_results(argument):
     """
     For each routes.x.in file, write a routes.x.out file that contains T lines
-with on each line a single number corresponding to the minimum power to cover the path
+    with on each line :
+        - a number corresponding to the minimum power to cover the path
+        - a second number corresponding to the utility of the path 
     """
     file = open(f'input/routes.{argument}.in', 'r')
     g = graph_from_file(f'input/network.{argument}.in')
-    kruskal = g.kruskal()
     output = open(f'output/routes.{argument}.out','w')
-    file.readline()
+    output.write(file.readline())
     for line in file:
         list_line = line.split(' ')
         src = int(list_line[0])
         dest = int(list_line[1])
         utilite = list_line[2]
-        if g.min_power_kruskal(src,dest)==None:
+        p_min=g.min_power_kruskal(src,dest)
+        if p_min==None:
             min_power = "None"
         else:
-            min_power = g.min_power_kruskal(src,dest)
+            min_power = p_min 
         output.write(str(min_power) + " " + str(utilite))
-        #output.write('\n')
     output.close()
 
 
@@ -602,112 +601,217 @@ class Catalogue:
     
     
 def catalogue_from_file(filename):
-    f= open(f"input/trucks.{filename}.in")
+    f = open(f"output/trucks.{filename}.in")
     content = f.readlines()
     nb_trucks = int(content[0])
-    g = Catalogue([truck for truck in range(1,int(nb_trucks)+1)])
-    g.nb_trucks=nb_trucks
-    g.trucks=range(1,g.nb_trucks + 1)
+    g = Catalogue([truck for truck in range(1, int(nb_trucks)+1)])
+    g.nb_trucks = nb_trucks
+    g.trucks = range(1, g.nb_trucks + 1)
     for line in range(1, int(nb_trucks)+1):
         parameters = (content[line]).split(" ")
         truck_power = parameters[0]
         truck_cost = parameters[1].strip("\n")
-        g.add_caracteristics(line,truck_power, truck_cost)
+        g.add_caracteristics(line, truck_power, truck_cost)
     return g
-    
 
-def glouton_algorithm(num_graph,num_catalogue):
-    """creation = stock_results(num_graph)
-    file = open(f'routes.{num_graph}.out', 'r')
-    content = file.readlines()
-    """
-    
-    
+
+def journey_and_cost_algorithm(num_graph, num_catalogue):
     """
     Cette fonction construit un dictionnaire avec en clé : trajet (1,...nb_trajets) et des valeurs
     (camion choisit, son cout, utilité du trajet)"""
     with open(f'output/routes.{num_graph}.out', 'r') as fileout:
-             #nb_routes = filein.readline() #QUESTION ICI: CHANGER LE FORMAT DE STOCK RESULTS PR PVOIR GARDER CETTE INFO??
-             #content_in = filein.readlines()
-             content_out = fileout.readlines()
+        nb_routes = int(fileout.readline())
+        content_out = fileout.readlines()
     catal = catalogue_from_file(num_catalogue)
-    trajet_and_truck = dict()
-    #print(content_out)
-    for index,line in enumerate(content_out, start=1 ):
-        parameters=line.split()
-        #print(f"les param{parameters}")
-        utility= int(parameters[-1].strip("\n"))
+    journey_parameters = dict()
+    #nb_routes = 0
+    for index, line in enumerate(content_out):
+        #nb_routes +=1
+        parameters = line.split()
+        utility = int(parameters[-1].strip("\n"))
         trajet_power = float(parameters[0])
-       #print(trajet_power)
-        if trajet_power == "None": 
+       # print(trajet_power)
+        if trajet_power == "None":
             continue
-        opti_cost=float('inf')
-        optimal_truck=None
-        left=0
-        right=len(catal.trucks)-1
+        opti_cost = float('inf')
+        optimal_truck = None
+        left = 0
+        right = len(catal.trucks)-1
         while left <= right:
-            mid=(left + right)//2
-            #print(f"mid:{mid}")
-            truck= catal.trucks[mid]
+            mid = (left + right) // 2
+            truck = catal.trucks[mid]
             for power, cost in catal.catalogue[truck]:
-                if trajet_power<=float(power) and float(cost)<opti_cost:
-                    opti_cost=int(cost)
-                    optimal_truck=truck
-                    #print(f"opti cost {opti_cost} and optimal truck {optimal_truck}")
-                if float(power)>= trajet_power:#GROSSE QUESTION ICI AUSSI CF VOCAUX 22H40
-                    right=mid-1
-                else:
-                    left=mid+1      
-        trajet_and_truck[index]=[optimal_truck, opti_cost, utility]
+                if trajet_power <= float(power) and float(cost) < opti_cost:
+                    opti_cost = int(cost)
+                    optimal_truck = truck
+                    break
+            if float(power) >= trajet_power:
+                right = mid - 1
+            else:
+                left = mid + 1
+        journey_parameters[index+1] = [1, optimal_truck, opti_cost, utility]
 
-    return trajet_and_truck #nb_routes
+    return journey_parameters, nb_routes, len(catal.trucks)
 
 
-def backpack_algorithm(num_graph,num_catalogue):
-    trajet_and_truck = glouton_algorithm(num_graph,num_catalogue)
-    """, nb_routes"""
+def glouton_algorithm(num_graph, num_catalogue):
+    journey_parameters, nb_routes, nb_trucks = journey_and_cost_algorithm(num_graph, num_catalogue)
     #Trajet_and_utility = dict()
-    for key,values in trajet_and_truck.items():
+    for key, values in journey_parameters.items():
         #Trajet_and_utility[key]= (float(values[-1])/float(values[1]))
-        trajet_and_truck[key].append(float(values[-1])/float(values[1]))
-    #On sort les efficacité par ordre décroissant
-    dict_sorted = dict(sorted(trajet_and_truck.items(), key=lambda x: x[-1], reverse=True))
-    #On initialise
+        journey_parameters[key].append(float(values[-1])/float(values[1]))
+    # On sort les efficacité par ordre décroissant
+    dict_sorted = dict(sorted(journey_parameters.items(),
+                       key=lambda x: x[-1], reverse=True))
+    # On initialise
     Cost_cumul = 0
-    #On initialise la collection des camions à acheter
+    # On initialise la collection des camions à acheter
     Trucks_to_buy = dict()
-    Journey_cover = dict()
+    routes_and_trucks = dict()
     total_utility = 0
-    #on itère sur nb_routes et pas sur len(dict_sorted) car dans le dict sorted les routes inexistantes ont été suppr
+    print(dict_sorted)
+    # on itère sur nb_routes et pas sur len(dict_sorted) car dans le dict sorted les routes inexistantes ont été suppr
     for i in dict_sorted:
-        try : 
-            if float(dict_sorted[i][1]) + Cost_cumul <= 25*(10**9) :
-                Cost_cumul +=  int(dict_sorted[i][1])  
-                Journey_cover[i]= [1,dict_sorted[i][0]]#on construit une liste avec : tel trajet : si il est cover : et si oui par qui
-                total_utility += int(dict_sorted[i][2])
+        try:
+            if float(dict_sorted[i][1]) + Cost_cumul <= 25*(10**9):
+                Cost_cumul += int(dict_sorted[i][2])
+                # on construit une liste avec : tel trajet : si il est cover : et si oui par qui
+                routes_and_trucks[i] = [1, dict_sorted[i][1], dict_sorted[i][2], dict_sorted[i][3]]
+                total_utility += int(dict_sorted[i][3])
                 if dict_sorted[i][0] not in Trucks_to_buy.keys():
-                    Trucks_to_buy[dict_sorted[i][0]] = 1
+                    Trucks_to_buy[dict_sorted[i][1]] = 1
                 else:
-                    Trucks_to_buy[dict_sorted[i][0]]+=1
-        except KeyError : 
-            pass #le trajet i n'existe pas, n'est pas possible
+                    Trucks_to_buy[dict_sorted[i][1]] += 1
+            else:
+                routes_and_trucks[i] = [0, dict_sorted[i][1], dict_sorted[i][2], dict_sorted[i][3]]
+        except KeyError:
+            pass  # le trajet i n'existe pas, n'est pas possible
+            #solution.routes[index+1] = [opti_truck, opti_cost, utility]
+    return Trucks_to_buy, routes_and_trucks,total_utility ,Cost_cumul, nb_trucks 
 
-    return "liste des camions à acheter :", Trucks_to_buy,"liste des trajets à couvrir avec tel camion :", Journey_cover, f"utilité totale :{total_utility}" , f"coût total: {Cost_cumul}"
 
-                               
+class Solution:
+    def __init__(self, trucks, routes):
+        self.trucks = trucks
+        self.routes = routes
+        self.cost = 0
+        self.utility = 0
+
+    def __str__(self):
+        return f"Trucks: {self.trucks}\nRoutes: {self.routes}\nCost: {self.cost} & Utility: {self.utility}"
+
+
+def Simulated_annealing_random(num_graph, num_catalogue, nb_iter=1000, T=1000, alpha=0.95):
+
+    #Initialisation de type random:
+    with open(f'routes.{num_graph}.out', 'r') as fileout:
+        nb_routes = int(fileout.readline())
+    result = journey_and_cost_algorithm(num_graph,num_catalogue)
+    nb_trucks = result[-1]
+    routes = result[0]
+    routes_sorted = dict(sorted(routes.items(),key=lambda x: x[-1], reverse=True))
+    solution = Solution(trucks=list(range(1, nb_trucks +1)), routes= routes_sorted)
+    utility = 0
+    cost = 0
+    solution.utility = utility
+    solution.cost = cost
     
-#print(catalogue_from_file(1))
-#print(backpack_algorithm(1,1))
+    print(solution)
+    best_solution = solution
+    for i in range(nb_iter):
+        print(i)
+        # Générer une solution voisine
+        new_solution = Solution(trucks=best_solution.trucks.copy(), routes=best_solution.routes.copy())
+        for j in range(1,10) : 
+            change1, change2 = random.randint(1, len(new_solution.routes)), random.randint(1, len(new_solution.routes))
+            if new_solution.routes[change1][0]== 0 :
+                new_solution.routes[change1][0] = 1
+            if new_solution.routes[change2][0]== 1 :
+                new_solution.routes[change2][0] = 0
+        #print("voici change1 :", change1, new_solution.routes[change1][0]," voici change2 :" ,change2, new_solution.routes[change2][0])
+        #print(new_solution)
+        # Calculer le coût et la profitabilité de la nouvelle solution
+        new_solution.cost = 0
+        new_solution.utility = 0
+        for k in new_solution.routes:
+            #print(f"boucle numéro {k} on a un {new_solution.routes[k][0]}")
+            #print(f"{k} : {new_solution.routes[k][0]} ----")
+            if new_solution.routes[k][0] == 1 and float(new_solution.routes[k][2]) + new_solution.cost <= 25*(10**9): 
+                new_solution.cost += new_solution.routes[k][2]
+               #     print("nouveau new_solution.cost", new_solution.cost)
+                new_solution.utility += new_solution.routes[k][-1]
+                
+        # Accepter ou rejeter la nouvelle solution selon la probabilité de Metropolis
+        if new_solution.utility > solution.utility or math.exp((new_solution.utility - solution.utility) / T) > random.uniform(0, 1):
+            solution = new_solution
 
-"""
-La complexité temporelle de votre fonction backpack_algorithm() dépend principalement de la complexité temporelle de la fonction glouton_algorithm(). La complexité de cette fonction est en $O(NM)$ où $N$ est le nombre de trajets et $M$ est le nombre de camions. C'est en effet la boucle for truck in catal.trucks: qui est la plus coûteuse et qui est exécutée pour chaque trajet, avec une complexité de $O(M)$.
+        # Mettre à jour la meilleure solution trouvée
+        print("ma solution : ",new_solution.utility)
+        
+        if solution.utility > best_solution.utility:
+            best_solution = new_solution
+        print("meilleure solution utility", best_solution.utility)
+        # Refroidir la température
+        T *= alpha
+    print()
+    print("Solution trouvée :", best_solution)
+    return best_solution
 
-En ce qui concerne la fonction backpack_algorithm(), la partie la plus coûteuse est le tri des trajets par ordre décroissant d'efficacité. Cette opération de tri a une complexité de $O(N\log N)$, où $N$ est le nombre de trajets.
 
-La complexité de la boucle principale dépend de la distribution des coûts des trajets. Si les coûts sont uniformément distribués, la boucle principale aura une complexité en $O(N)$. Dans le pire des cas, où tous les trajets ont le même coût, la boucle principale aura une complexité en $O(NM)$.
+def Simulated_annealing_glouton(num_graph, num_catalogue, nb_iter=1000, T=1000, alpha=0.95):
+    with open(f'output/routes.{num_graph}.out', 'r') as fileout:
+        nb_routes = int(fileout.readline())
+        content_out = fileout.readlines()
+    # Initialisation de type 1 :
+    catal = catalogue_from_file(num_catalogue)
+    result = glouton_algorithm(num_graph,num_catalogue)
+    nb_trucks = result[-1]
+    routes = result[1]
+    print("ON EST LA")
+    routes_sorted = dict(sorted(routes.items(),key=lambda x: x[-1], reverse=True))
+    solution = Solution(trucks=list(range(1, nb_trucks +1)), routes = routes_sorted)
+    utility = result[2]
+    cost = result[3]
+    solution.utility = utility
+    solution.cost = cost
+    
+    #print(solution)
+    best_solution = solution
+    for i in range(nb_iter):
+        print(i)
+        # Générer une solution voisine
+        new_solution = Solution(trucks=best_solution.trucks.copy(), routes=best_solution.routes.copy())
+        for j in range(1,10) : 
+            change1, change2 = random.randint(1, len(new_solution.routes)), random.randint(1, len(new_solution.routes))
+            if new_solution.routes[change1][0]== 0 :
+                new_solution.routes[change1][0] = 1
+            if new_solution.routes[change2][0]== 1 :
+                new_solution.routes[change2][0] = 0
+        #print("voici change1 :", change1," voici change2 :" ,change2)
+        #print(new_solution)
+        # Calculer le coût et la profitabilité de la nouvelle solution
+        new_solution.cost = 0
+        new_solution.utility = 0
+        for k in new_solution.routes:
+            #print(f"boucle numéro {k} on a un {new_solution.routes[k][0]}")
+            #print(f"{k} : {new_solution.routes[k][0]} ----")
+            if new_solution.routes[k][0] == 1 and float(new_solution.routes[k][2]) + new_solution.cost <= 55*(10**5): 
+                new_solution.cost += new_solution.routes[k][2]
+               #     print("nouveau new_solution.cost", new_solution.cost)
+                new_solution.utility += new_solution.routes[k][-1]
+                
+        # Accepter ou rejeter la nouvelle solution selon la probabilité de Metropolis
+        if new_solution.utility > solution.utility or math.exp((new_solution.utility - solution.utility) / T) > random.uniform(0, 1):
+            solution = new_solution
 
-Pour améliorer les performances de votre code, vous pourriez envisager d'utiliser une autre méthode pour trier les trajets. Par exemple, vous pourriez utiliser un algorithme de tri linéaire tel que le tri pigeonhole si les coûts des trajets sont des nombres entiers dans un intervalle donné. Cela réduirait la complexité temporelle de l'étape de tri de $O(N\log N)$ à $O(N)$.
-
-Par ailleurs, vous pourriez optimiser la boucle principale en évitant de trier tous les trajets si vous n'avez besoin que des $k$ trajets les plus efficaces. Dans ce cas, vous pouvez utiliser un algorithme de sélection linéaire tel que la sélection par partition, qui a une complexité en $O(N)$ pour trouver les $k$ éléments les plus efficaces.
-
-Enfin, il est possible que le coût de votre fonction dépende également de la complexité temporelle de la fonction catalogue_from_file(). Vous pourriez envisager d'optimiser cette fonction en évitant d'allouer de nouveaux objets list pour chaque camion si vous connaissez à l'avance le nombre total de camions."""
+        # Mettre à jour la meilleure solution trouvée
+        print("ma solution : ",new_solution.utility)
+        
+        if solution.utility > best_solution.utility:
+            best_solution = new_solution
+        print("meilleure solution utility", best_solution.utility)
+        # Refroidir la température
+        T *= alpha
+    print()
+    print("Solution trouvée :", best_solution)
+    return best_solution
