@@ -663,7 +663,6 @@ def glouton_algorithm(num_graph, num_catalogue):
     Trucks_to_buy = dict()
     routes_and_trucks = dict()
     total_utility = 0
-    print(dict_sorted)
     for i in dict_sorted:
         try:
             if float(dict_sorted[i][1]) + Cost_cumul <= 25*(10**9):
@@ -706,7 +705,6 @@ def Simulated_annealing_random(num_graph, num_catalogue, nb_iter=1000, T=1000, a
     solution.utility = utility
     solution.cost = cost
     
-    print(solution)
     best_solution = solution
     for i in range(nb_iter):
         # Générer une solution voisine
