@@ -241,16 +241,16 @@ class Graph:
                 uf.union(src_set, dest_set)
         #mst.list_parent=uf.parent
         #mst.list_rank=uf.rank 
-        #mst.components_list, mst.rank_dict, mst.parent_dict, _= self.build_caracteristics()
+        #mst.components_list, mst.rank_dict, mst.parent_dict, _= self.build_characteristics()
 
         return mst
     
 
 
 
-    def build_caracteristics(self):
+    def build_characteristics(self):
         """
-        The function build_caracteristics is applied to a graph and defines :
+        The function build_characteristics is applied to a graph and defines :
             -self.components_list: a list of the sets of the connected components of the mst graph
             -self.rank_dict: a dictionnary of the ranks of the nodes (format: {node:rank})
             -self.parent_dict: a dictionnary of the parents of the nodes (format: {node:parent})
@@ -396,7 +396,7 @@ def graph_from_file(filename):
         power_min = parameters[2].strip("\n")
         g.add_edge(int(parameters[0]), int(parameters[1]), int(power_min), dist)
     fil.close()
-    g.build_caracteristics()
+    g.build_characteristics()
     g.mst=g.kruskal()
     g.list_of_index = [list(zip(*g.mst.graph[node]))[0] if g.mst.graph[node]!=[] else () for node in g.nodes]
     return g
@@ -592,7 +592,7 @@ class Catalogue:
                 output += f"{source}-->{destination}\n"
         return output   
     
-    def add_caracteristics(self, truck, power, cost):
+    def add_characteristics(self, truck, power, cost):
         if truck not in self.trucks:
             self.trucks[truck] = []
             self.nb_trucks += 1
@@ -611,7 +611,7 @@ def catalogue_from_file(filename):
         parameters = (content[line]).split(" ")
         truck_power = parameters[0]
         truck_cost = parameters[1].strip("\n")
-        g.add_caracteristics(line, truck_power, truck_cost)
+        g.add_characteristics(line, truck_power, truck_cost)
     return g
 
 
