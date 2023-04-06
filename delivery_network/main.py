@@ -1,4 +1,4 @@
-from graph import Graph, graph_from_file, UnionFind, compare, estimate_time, stock_results, Catalogue, catalogue_from_file, glouton_algorithm, estimate_time_kruskal
+from graph import Graph, graph_from_file, UnionFind, compare, estimate_time, stock_results, Catalogue, catalogue_from_file, glouton_algorithm, estimate_time_kruskal, Simulated_annealing_glouton, Simulated_annealing_random
 
 
 data_path = "input/"
@@ -10,7 +10,7 @@ print(h)
 h.graph[1]
 #compare(2)
 #estimate_time_kruskal(2)
-stock_results(10)
+#stock_results(10)
 #print(g.build_caracteristics())
 #print(h.list_rank, h.list_parent)
 #print(g.connected_components())
@@ -22,4 +22,6 @@ stock_results(10)
 
 #print(catalogue_from_file(1))
 #glouton_algorithm(2,2)
+#Simulated_annealing_glouton(2,2)
+Simulated_annealing_random(2,2)
 #print(backpack_algorithm(5,2))

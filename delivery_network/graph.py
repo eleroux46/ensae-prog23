@@ -597,7 +597,7 @@ class Catalogue:
     
     
 def catalogue_from_file(filename):
-    f = open(f"output/trucks.{filename}.in")
+    f = open(f"input/trucks.{filename}.in")
     content = f.readlines()
     nb_trucks = int(content[0])
     g = Catalogue([truck for truck in range(1, int(nb_trucks)+1)])
@@ -696,8 +696,6 @@ class Solution:
 def Simulated_annealing_random(num_graph, num_catalogue, nb_iter=1000, T=1000, alpha=0.95):
 
     #random initialisation
-    with open(f'routes.{num_graph}.out', 'r') as fileout:
-        nb_routes = int(fileout.readline())
     result = journey_and_cost_algorithm(num_graph,num_catalogue)
     nb_trucks = result[-1]
     routes = result[0]
@@ -711,7 +709,6 @@ def Simulated_annealing_random(num_graph, num_catalogue, nb_iter=1000, T=1000, a
     print(solution)
     best_solution = solution
     for i in range(nb_iter):
-        print(i)
         # Générer une solution voisine
         new_solution = Solution(trucks=best_solution.trucks.copy(), routes=best_solution.routes.copy())
         for j in range(1,10) : 
