@@ -735,14 +735,12 @@ def Simulated_annealing_random(num_graph, num_catalogue, nb_iter=1000, T=1000, a
             solution = new_solution
 
         # Mettre à jour la meilleure solution trouvée
-        print("ma solution : ",new_solution.utility)
         
         if solution.utility > best_solution.utility:
             best_solution = new_solution
-        print("meilleure solution utility", best_solution.utility)
         # Refroidir la température
         T *= alpha
-    print()
+
     print("Solution trouvée :", best_solution)
     return best_solution
 
@@ -765,7 +763,6 @@ def Simulated_annealing_glouton(num_graph, num_catalogue, nb_iter=1000, T=1000, 
     
     best_solution = solution
     for i in range(nb_iter):
-        print(i)
         # Générer une solution voisine
         new_solution = Solution(trucks=best_solution.trucks.copy(), routes=best_solution.routes.copy())
         for j in range(1,10) : 
@@ -780,7 +777,7 @@ def Simulated_annealing_glouton(num_graph, num_catalogue, nb_iter=1000, T=1000, 
         new_solution.utility = 0
         for k in new_solution.routes:
         
-            if new_solution.routes[k][0] == 1 and float(new_solution.routes[k][2]) + new_solution.cost <= 55*(10**5): 
+            if new_solution.routes[k][0] == 1 and float(new_solution.routes[k][2]) + new_solution.cost <= 25*(10**9): 
                 new_solution.cost += new_solution.routes[k][2]
                 new_solution.utility += new_solution.routes[k][-1]
                 
@@ -788,14 +785,11 @@ def Simulated_annealing_glouton(num_graph, num_catalogue, nb_iter=1000, T=1000, 
         if new_solution.utility > solution.utility or math.exp((new_solution.utility - solution.utility) / T) > random.uniform(0, 1):
             solution = new_solution
 
-        # Mettre à jour la meilleure solution trouvée
-        print("ma solution : ",new_solution.utility)
-        
+        # Mettre à jour la meilleure solution trouvée        
         if solution.utility > best_solution.utility:
             best_solution = new_solution
-        print("meilleure solution utility", best_solution.utility)
+
         # Refroidir la température
         T *= alpha
-    print()
     print("Solution trouvée :", best_solution)
     return best_solution
