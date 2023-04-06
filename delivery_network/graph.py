@@ -239,9 +239,7 @@ class Graph:
             if src_set != dest_set: #if the nodes are not already connected, the edge is added to the mst
                 mst.add_edge(src, dest, power)
                 uf.union(src_set, dest_set)
-        #mst.list_parent=uf.parent
-        #mst.list_rank=uf.rank 
-        #mst.components_list, mst.rank_dict, mst.parent_dict, _= self.build_characteristics()
+
 
         return mst
     
@@ -302,9 +300,9 @@ class Graph:
     def min_power_kruskal(self, src, dest):
         """
         the function takes a node of origin and a node of destination as parameters.
-        it returns the p_min (which is the power minimal necessary to go from src to dest).
+        it returns the p_min (int) (which is the power minimal necessary to go from src to dest).
         
-        Its complexity is : 
+        Its complexity is : O(E'+ln(V)) where E' is the number of edges in the mst graph.
         """
 
         rank_src= self.rank_dict[src]
@@ -405,7 +403,7 @@ def graph_from_file(filename):
 def estimate_time(argument):
     """
     the function estimate_time takes the number of a network as argument
-    and returns the mean time necessary to apply the min_power function in this network.
+    and returns the mean time necessary to apply the min_power function in this network: estimation_time (float)
     """
     g = graph_from_file(f"input/network.{argument}.in")
     h= open(f"input/routes.{argument}.in", "r") #we open the file "routes" corresponding 
@@ -513,10 +511,11 @@ def compare(argument):
 
 def stock_results(argument):
     """
-    For each routes.x.in file, write a routes.x.out file that contains T lines
+    For each routes.x.in file, write a routes.x.out file that contains T+1 lines
     with on each line :
         - a number corresponding to the minimum power to cover the path
         - a second number corresponding to the utility of the path 
+    and on the first line: the number of routes in the file.
     """
     file = open(f'input/routes.{argument}.in', 'r')
     g = graph_from_file(f'input/network.{argument}.in')
@@ -548,7 +547,7 @@ class UnionFind:
 
     def find(self, node):
         """
-        the function finds the parent of a node
+        this function finds the parent of a node
         """
         if self.parent[node] != node:
             self.parent[node]=self.find(self.parent[node])
@@ -572,8 +571,6 @@ class UnionFind:
 
 
 
-
-"""passage à l'algorithme d'optimisation avec les camions"""
 
 
   
